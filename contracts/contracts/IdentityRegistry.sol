@@ -107,4 +107,9 @@ contract IdentityRegistry is Ownable, AccessControl {
         require(identities[did].isActive, "Identity not active");
         return true; // placeholder
     }
+
+    function getIdentityOwner(string memory did) external view returns (address) {
+        return identities[did].owner;
+    }
+
 }
