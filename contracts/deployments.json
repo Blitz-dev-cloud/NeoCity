@@ -1,0 +1,16 @@
+{
+  "network": "localhost",
+  "chainId": "1337",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2025-10-17T07:43:10.505Z",
+  "contracts": {
+    "DeFiToken": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+    "IdentityRegistry": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    "DeFiBank": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "Voting": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    "Grievance": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+    "EHRRegistry": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+    "SupplyChain": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+    "TrafficLog": "0x0B306BF915C4d645ff596e518fAf3F9669b97016"
+  }
+}
