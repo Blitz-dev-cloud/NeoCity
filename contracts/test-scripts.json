@@ -1,0 +1,22 @@
+{
+  "name": "neocity-contracts-tests",
+  "version": "1.0.0",
+  "description": "Test suite for NeoCity decentralized smart city platform",
+  "scripts": {
+    "test": "hardhat test",
+    "test:token": "hardhat test test/DeFiToken.test.js",
+    "test:identity": "hardhat test test/IdentityRegistry.test.js",
+    "test:bank": "hardhat test test/DeFiBank.test.js",
+    "test:voting": "hardhat test test/Voting.test.js",
+    "test:grievance": "hardhat test test/Grievance.test.js",
+    "test:ehr": "hardhat test test/EHRRegistry.test.js",
+    "test:supply": "hardhat test test/SupplyChain.test.js",
+    "test:traffic": "hardhat test test/TrafficLog.test.js",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "cross-env REPORT_GAS=true hardhat test",
+    "compile": "hardhat compile",
+    "clean": "hardhat clean",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost"
+  }
+}
