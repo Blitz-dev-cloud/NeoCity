@@ -5,6 +5,8 @@ import { OrbitControls, Stars } from "@react-three/drei";
 import { Suspense } from "react";
 import { Building3D } from "./Building3D";
 import { Ground } from "./Ground";
+import { CityVehicles } from "./CityVehicles";
+import { TrafficLight, TrafficLightController } from "./TrafficLights";
 
 interface CityScene3DProps {
   onBuildingClick: (buildingId: string) => void;
@@ -128,6 +130,63 @@ export function CityScene3D({
 
         {/* Ground */}
         <Ground />
+
+        {/* Traffic Light Controller */}
+        <TrafficLightController />
+
+        {/* Traffic Lights at Center Intersection */}
+        <TrafficLight position={[6, 0, 6]} id="main-h-center" delay={0} />
+        <TrafficLight
+          position={[-6, 0, -6]}
+          id="main-h-center-opposite"
+          delay={0}
+        />
+        <TrafficLight position={[6, 0, -6]} id="main-v-center" delay={5} />
+        <TrafficLight
+          position={[-6, 0, 6]}
+          id="main-v-center-opposite"
+          delay={5}
+        />
+
+        {/* Traffic Lights at Secondary Intersections */}
+        {/* Intersection at (-35, 0) */}
+        <TrafficLight position={[-30, 0, 6]} id="sec-h--35" delay={2} />
+        <TrafficLight
+          position={[-40, 0, -6]}
+          id="sec-h--35-opposite"
+          delay={2}
+        />
+        <TrafficLight position={[-30, 0, -6]} id="sec-v--35" delay={7} />
+        <TrafficLight
+          position={[-40, 0, 6]}
+          id="sec-v--35-opposite"
+          delay={7}
+        />
+
+        {/* Intersection at (35, 0) */}
+        <TrafficLight position={[40, 0, 6]} id="sec-h-35" delay={2} />
+        <TrafficLight position={[30, 0, -6]} id="sec-h-35-opposite" delay={2} />
+        <TrafficLight position={[40, 0, -6]} id="sec-v-35" delay={7} />
+        <TrafficLight position={[30, 0, 6]} id="sec-v-35-opposite" delay={7} />
+
+        {/* Intersection at (0, -35) */}
+        <TrafficLight position={[6, 0, -30]} id="sec-h-0--35" delay={3} />
+        <TrafficLight
+          position={[-6, 0, -40]}
+          id="sec-h-0--35-opposite"
+          delay={3}
+        />
+
+        {/* Intersection at (0, 35) */}
+        <TrafficLight position={[6, 0, 40]} id="sec-h-0-35" delay={3} />
+        <TrafficLight
+          position={[-6, 0, 30]}
+          id="sec-h-0-35-opposite"
+          delay={3}
+        />
+
+        {/* Vehicles */}
+        <CityVehicles />
 
         {/* Buildings */}
         {buildings.map((building) => (

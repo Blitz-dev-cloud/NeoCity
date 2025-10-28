@@ -12,6 +12,7 @@ import { formatEther } from "viem";
 import { FaSpinner } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
 import { BankPanel } from "@/components/modules/BankPanel";
+import { TrafficControlPanel } from "@/components/TrafficControlPanel";
 
 // Dynamic import for 3D scene (client-side only)
 const CityScene3D = dynamic(
@@ -75,170 +76,416 @@ export default function Home() {
     setActiveModal(null);
   };
 
-  // Crazy Loading Animation
+  // Aurora Loading Animation
   if (isLoading) {
     return (
-      <main className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950">
-        {/* Animated Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse" />
-
-        {/* Floating Particles */}
+      <main className="relative h-screen w-screen overflow-hidden bg-black">
+        {/* Aurora Background Layers */}
         <div className="absolute inset-0">
-          {[...Array(50)].map((_, i) => (
+          {/* Layer 1 - Purple Aurora */}
+          <motion.div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.3), transparent)",
+            }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
+          {/* Layer 2 - Blue Aurora */}
+          <motion.div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 60% at 30% 50%, rgba(59, 130, 246, 0.4), transparent)",
+            }}
+            animate={{
+              x: [0, 100, 0],
+              scale: [1, 1.3, 1],
+              opacity: [0.4, 0.7, 0.4],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
+          {/* Layer 3 - Pink Aurora */}
+          <motion.div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 70% at 70% 60%, rgba(236, 72, 153, 0.3), transparent)",
+            }}
+            animate={{
+              x: [0, -80, 0],
+              y: [0, 50, 0],
+              scale: [1, 1.25, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
+          {/* Layer 4 - Cyan Aurora */}
+          <motion.div
+            className="absolute inset-0 opacity-40"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 40% at 50% 100%, rgba(6, 182, 212, 0.4), transparent)",
+            }}
+            animate={{
+              scale: [1, 1.15, 1],
+              opacity: [0.4, 0.7, 0.4],
+            }}
+            transition={{
+              duration: 9,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
+        {/* Animated Fluid Blobs */}
+        <div className="absolute inset-0">
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-2 h-2 bg-blue-400 rounded-full"
+              className="absolute rounded-full mix-blend-screen filter blur-3xl"
               style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
+                width: `${200 + i * 50}px`,
+                height: `${200 + i * 50}px`,
+                left: `${20 * i}%`,
+                top: `${15 * i}%`,
+                background: [
+                  "radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(236,72,153,0.4) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(6,182,212,0.4) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)",
+                  "radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)",
+                ][i],
               }}
               animate={{
-                y: [0, -30, 0],
-                x: [0, Math.random() * 20 - 10, 0],
-                opacity: [0.3, 1, 0.3],
-                scale: [1, 1.5, 1],
+                x: [0, Math.random() * 200 - 100, 0],
+                y: [0, Math.random() * 200 - 100, 0],
+                scale: [1, 1.3, 1],
+                opacity: [0.3, 0.6, 0.3],
               }}
               transition={{
-                duration: Math.random() * 2 + 2,
+                duration: 8 + i * 2,
                 repeat: Infinity,
                 ease: "easeInOut",
+                delay: i * 0.5,
               }}
             />
           ))}
         </div>
 
-        {/* Central Loading Animation */}
+        {/* Shimmer Effect */}
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)",
+            backgroundSize: "200% 200%",
+          }}
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%"],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+
+        {/* Floating Particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(40)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                boxShadow: "0 0 10px rgba(255,255,255,0.5)",
+              }}
+              animate={{
+                y: [0, -100, 0],
+                x: [0, Math.random() * 30 - 15, 0],
+                opacity: [0, 1, 0],
+                scale: [0, 1.5, 0],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                ease: "easeOut",
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Center Content */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full">
-          {/* Spinning Rings */}
-          <div className="relative w-64 h-64 mb-8">
-            {[0, 1, 2].map((i) => (
+          {/* Glowing Orb */}
+          <div className="relative w-80 h-80 mb-12">
+            {/* Outer Glow Rings */}
+            {[0, 1, 2, 3].map((i) => (
               <motion.div
                 key={i}
-                className="absolute inset-0 border-4 border-transparent rounded-full"
+                className="absolute inset-0 rounded-full"
                 style={{
-                  borderTopColor: ["#3B82F6", "#8B5CF6", "#EC4899"][i],
-                  borderRightColor: ["#3B82F6", "#8B5CF6", "#EC4899"][i],
+                  background: `radial-gradient(circle, ${
+                    [
+                      "rgba(59,130,246,0.3)",
+                      "rgba(139,92,246,0.3)",
+                      "rgba(236,72,153,0.3)",
+                      "rgba(6,182,212,0.3)",
+                    ][i]
+                  }, transparent)`,
+                  filter: "blur(20px)",
                 }}
                 animate={{
-                  rotate: 360,
-                  scale: [1, 1.1, 1],
+                  scale: [1, 1.5 + i * 0.2, 1],
+                  opacity: [0.5, 0.2, 0.5],
                 }}
                 transition={{
-                  rotate: {
-                    duration: 2 - i * 0.3,
-                    repeat: Infinity,
-                    ease: "linear",
-                  },
-                  scale: {
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+                  duration: 3 + i * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.2,
                 }}
               />
             ))}
 
-            {/* Center Icon */}
+            {/* Central Orb */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
               animate={{
-                scale: [1, 1.2, 1],
-                rotate: [0, 180, 360],
+                scale: [1, 1.1, 1],
               }}
               transition={{
-                duration: 3,
+                duration: 2,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
             >
-              <div className="text-8xl">🏙️</div>
+              <div className="relative">
+                <motion.div
+                  className="text-9xl"
+                  animate={{
+                    rotate: [0, 360],
+                    filter: [
+                      "drop-shadow(0 0 20px rgba(59,130,246,0.8))",
+                      "drop-shadow(0 0 40px rgba(236,72,153,0.8))",
+                      "drop-shadow(0 0 20px rgba(59,130,246,0.8))",
+                    ],
+                  }}
+                  transition={{
+                    rotate: {
+                      duration: 20,
+                      repeat: Infinity,
+                      ease: "linear",
+                    },
+                    filter: {
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }}
+                >
+                  🏙️
+                </motion.div>
+              </div>
             </motion.div>
           </div>
 
-          {/* Animated Text */}
-          <motion.h1
-            className="text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"
-            animate={{
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear",
-            }}
+          {/* Title with Gradient Animation */}
+          <motion.div
+            className="relative mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
           >
-            NeoCity 3D
-          </motion.h1>
+            <motion.h1
+              className="text-7xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"
+              style={{
+                backgroundSize: "200% 200%",
+              }}
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              NeoCity 3D
+            </motion.h1>
 
+            <motion.div
+              className="h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent rounded-full"
+              animate={{
+                scaleX: [0, 1, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </motion.div>
+
+          {/* Subtitle */}
           <motion.p
-            className="text-xl text-blue-300 mb-8"
-            animate={{
-              opacity: [0.5, 1, 0.5],
-            }}
+            className="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{
               duration: 2,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           >
-            Loading your immersive experience...
+            Entering the Future of Smart Cities
           </motion.p>
 
-          {/* Progress Bar */}
-          <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+          {/* Fluid Progress Bar */}
+          <div className="relative w-96 h-3 bg-black/30 backdrop-blur-sm rounded-full overflow-hidden border border-white/10 mb-12">
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
+              className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+              initial={{ x: "-100%" }}
+              animate={{ x: "0%" }}
               transition={{ duration: 3, ease: "easeOut" }}
+            />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{
+                x: ["-100%", "200%"],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
             />
           </div>
 
-          {/* Loading Stats */}
+          {/* Feature Cards */}
           <motion.div
-            className="mt-12 grid grid-cols-3 gap-8"
-            initial={{ opacity: 0, y: 20 }}
+            className="grid grid-cols-3 gap-6"
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
           >
             {[
-              { icon: "🏦", label: "Banking" },
-              { icon: "🗳️", label: "Governance" },
-              { icon: "�", label: "Healthcare" },
+              {
+                icon: "🏦",
+                label: "DeFi Banking",
+                color: "from-blue-500/20 to-cyan-500/20",
+                border: "border-blue-400/30",
+              },
+              {
+                icon: "🗳️",
+                label: "Governance",
+                color: "from-purple-500/20 to-pink-500/20",
+                border: "border-purple-400/30",
+              },
+              {
+                icon: "🏥",
+                label: "Healthcare",
+                color: "from-red-500/20 to-orange-500/20",
+                border: "border-red-400/30",
+              },
             ].map((item, i) => (
               <motion.div
                 key={i}
-                className="text-center"
+                className={`relative bg-gradient-to-br ${item.color} backdrop-blur-xl px-8 py-6 rounded-2xl border ${item.border} overflow-hidden`}
                 animate={{
-                  scale: [1, 1.1, 1],
+                  y: [0, -10, 0],
+                  boxShadow: [
+                    "0 0 20px rgba(59,130,246,0.2)",
+                    "0 0 40px rgba(139,92,246,0.4)",
+                    "0 0 20px rgba(59,130,246,0.2)",
+                  ],
                 }}
                 transition={{
-                  duration: 1,
+                  duration: 2,
                   repeat: Infinity,
                   delay: i * 0.2,
+                  ease: "easeInOut",
                 }}
               >
-                <div className="text-4xl mb-2">{item.icon}</div>
-                <div className="text-sm text-gray-400">{item.label}</div>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                    ease: "linear",
+                  }}
+                />
+                <div className="relative text-center">
+                  <div className="text-5xl mb-3">{item.icon}</div>
+                  <div className="text-sm font-semibold text-white/80">
+                    {item.label}
+                  </div>
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
 
-        {/* Bottom Text */}
+        {/* Bottom Info */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
-          animate={{
-            opacity: [0.3, 1, 0.3],
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{
-            duration: 2,
+            duration: 3,
             repeat: Infinity,
+            ease: "easeInOut",
           }}
         >
-          <p className="text-sm text-gray-500">
-            Built with Three.js • React Three Fiber • Web3
-          </p>
+          <div className="flex items-center gap-4 text-sm text-gray-400">
+            <span className="flex items-center gap-2">
+              <motion.div
+                className="w-2 h-2 bg-green-400 rounded-full"
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [1, 0.5, 1],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+              />
+              Powered by Web3
+            </span>
+            <span>•</span>
+            <span>Three.js + React Three Fiber</span>
+            <span>•</span>
+            <span>Blockchain Technology</span>
+          </div>
         </motion.div>
       </main>
     );
@@ -303,6 +550,9 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* Traffic Control Panel */}
+      <TrafficControlPanel />
 
       {/* Floating Panels */}
       <AnimatePresence>
