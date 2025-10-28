@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import dynamic from "next/dynamic";
@@ -9,8 +9,8 @@ import { useDeFiBank } from "@/hooks/useDeFiBank";
 import { useIdentityRegistry } from "@/hooks/useIdentityRegistry";
 import { useVoting } from "@/hooks/useVoting";
 import { formatEther } from "viem";
-import { FaWallet, FaSpinner } from "react-icons/fa";
-import { AnimatePresence } from "framer-motion";
+import { FaSpinner } from "react-icons/fa";
+import { AnimatePresence, motion } from "framer-motion";
 import { BankPanel } from "@/components/modules/BankPanel";
 
 // Dynamic import for 3D scene (client-side only)
@@ -43,20 +43,31 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const [activeModal, setActiveModal] = useState<BuildingType | null>(null);
   const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Hooks
+  // Hooks (only used when connected)
   const { useBalance } = useDeFiToken();
-  const { useDeposit, deposit, withdraw } = useDeFiBank();
+  const { useDeposit } = useDeFiBank();
   const { useIsVerified } = useIdentityRegistry();
   const { useProposalCount } = useVoting();
 
-  // Data
+  // Data (only fetch when connected)
   const { data: balance } = useBalance(address);
   const { data: bankDeposit } = useDeposit(address);
   const { data: isVerified } = useIsVerified(address);
   const { data: proposalCount } = useProposalCount();
 
+  // Loading animation timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000); // 3 second loading animation
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleBuildingClick = (buildingId: string) => {
+    // Allow viewing all buildings, wallet optional for transactions
     setActiveModal(buildingId as BuildingType);
   };
 
@@ -64,55 +75,171 @@ export default function Home() {
     setActiveModal(null);
   };
 
-  // Wallet not connected view
-  if (!isConnected) {
+  // Crazy Loading Animation
+  if (isLoading) {
     return (
-      <main className="relative h-screen w-screen overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-purple-900">
-        {/* Animated background */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10 animate-pulse" />
+      <main className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:50px_50px] animate-pulse" />
 
-        {/* Stars */}
+        {/* Floating Particles */}
         <div className="absolute inset-0">
-          {[...Array(100)].map((_, i) => (
-            <div
+          {[...Array(50)].map((_, i) => (
+            <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full"
+              className="absolute w-2 h-2 bg-blue-400 rounded-full"
               style={{
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.7 + 0.3,
-                animation: `pulse ${
-                  Math.random() * 3 + 2
-                }s ease-in-out infinite`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                x: [0, Math.random() * 20 - 10, 0],
+                opacity: [0.3, 1, 0.3],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: Math.random() * 2 + 2,
+                repeat: Infinity,
+                ease: "easeInOut",
               }}
             />
           ))}
         </div>
 
-        {/* Connect Wallet Prompt */}
+        {/* Central Loading Animation */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full">
-          <div className="text-center bg-white/5 backdrop-blur-2xl p-12 rounded-3xl border-2 border-blue-400/50 shadow-2xl shadow-blue-500/50">
-            <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-8 shadow-2xl shadow-blue-500/50 animate-pulse">
-              <FaWallet className="w-16 h-16 text-white drop-shadow-lg" />
-            </div>
-            <h1 className="text-7xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-              🏙️ NeoCity 3D
-            </h1>
-            <p className="text-2xl text-gray-300 mb-12 font-semibold">
-              Your Immersive 3D Smart City
-            </p>
-            <div className="flex justify-center mb-8">
-              <ConnectButton />
-            </div>
-            <div className="mt-8 text-sm text-gray-400 space-y-2">
-              <p>🏦 DeFi Banking • 🗳️ Governance • 🆔 Identity</p>
-              <p>🏥 Healthcare • 🚚 Supply Chain • 🚦 Traffic Control</p>
-              <p className="text-xs mt-4 text-gray-500">
-                Built with Three.js + React Three Fiber
-              </p>
-            </div>
+          {/* Spinning Rings */}
+          <div className="relative w-64 h-64 mb-8">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="absolute inset-0 border-4 border-transparent rounded-full"
+                style={{
+                  borderTopColor: ["#3B82F6", "#8B5CF6", "#EC4899"][i],
+                  borderRightColor: ["#3B82F6", "#8B5CF6", "#EC4899"][i],
+                }}
+                animate={{
+                  rotate: 360,
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  rotate: {
+                    duration: 2 - i * 0.3,
+                    repeat: Infinity,
+                    ease: "linear",
+                  },
+                  scale: {
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+              />
+            ))}
+
+            {/* Center Icon */}
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center"
+              animate={{
+                scale: [1, 1.2, 1],
+                rotate: [0, 180, 360],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <div className="text-8xl">🏙️</div>
+            </motion.div>
           </div>
+
+          {/* Animated Text */}
+          <motion.h1
+            className="text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"
+            animate={{
+              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            NeoCity 3D
+          </motion.h1>
+
+          <motion.p
+            className="text-xl text-blue-300 mb-8"
+            animate={{
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            Loading your immersive experience...
+          </motion.p>
+
+          {/* Progress Bar */}
+          <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 3, ease: "easeOut" }}
+            />
+          </div>
+
+          {/* Loading Stats */}
+          <motion.div
+            className="mt-12 grid grid-cols-3 gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            {[
+              { icon: "🏦", label: "Banking" },
+              { icon: "🗳️", label: "Governance" },
+              { icon: "�", label: "Healthcare" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                className="text-center"
+                animate={{
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                }}
+              >
+                <div className="text-4xl mb-2">{item.icon}</div>
+                <div className="text-sm text-gray-400">{item.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
+
+        {/* Bottom Text */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
+          animate={{
+            opacity: [0.3, 1, 0.3],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+          }}
+        >
+          <p className="text-sm text-gray-500">
+            Built with Three.js • React Three Fiber • Web3
+          </p>
+        </motion.div>
       </main>
     );
   }
@@ -131,33 +258,38 @@ export default function Home() {
       {/* HUD Overlay */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-40 pointer-events-none">
         {/* Left side - Stats */}
-        <div className="flex flex-col gap-3 pointer-events-auto">
-          <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-blue-400/30 shadow-lg shadow-blue-500/20">
-            <div className="text-xs text-blue-300 mb-1">Wallet Balance</div>
-            <div className="text-lg font-bold text-white">
-              💰 {balance ? `${formatEther(balance).slice(0, 8)} NEO` : "0 NEO"}
+        {isConnected && (
+          <div className="flex flex-col gap-3 pointer-events-auto">
+            <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-blue-400/30 shadow-lg shadow-blue-500/20">
+              <div className="text-xs text-blue-300 mb-1">Wallet Balance</div>
+              <div className="text-lg font-bold text-white">
+                💰{" "}
+                {balance ? `${formatEther(balance).slice(0, 8)} NEO` : "0 NEO"}
+              </div>
+            </div>
+            <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-green-400/30 shadow-lg shadow-green-500/20">
+              <div className="text-xs text-green-300 mb-1">Identity Status</div>
+              <div
+                className={`text-lg font-bold ${
+                  isVerified ? "text-green-400" : "text-orange-400"
+                }`}
+              >
+                {isVerified ? "✓ Verified" : "⚠ Unverified"}
+              </div>
+            </div>
+            <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-purple-400/30 shadow-lg shadow-purple-500/20">
+              <div className="text-xs text-purple-300 mb-1">
+                Active Proposals
+              </div>
+              <div className="text-lg font-bold text-white">
+                🗳️ {proposalCount?.toString() || "0"}
+              </div>
             </div>
           </div>
-          <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-green-400/30 shadow-lg shadow-green-500/20">
-            <div className="text-xs text-green-300 mb-1">Identity Status</div>
-            <div
-              className={`text-lg font-bold ${
-                isVerified ? "text-green-400" : "text-orange-400"
-              }`}
-            >
-              {isVerified ? "✓ Verified" : "⚠ Unverified"}
-            </div>
-          </div>
-          <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-purple-400/30 shadow-lg shadow-purple-500/20">
-            <div className="text-xs text-purple-300 mb-1">Active Proposals</div>
-            <div className="text-lg font-bold text-white">
-              🗳️ {proposalCount?.toString() || "0"}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Right side - Wallet Connection */}
-        <div className="bg-black/60 backdrop-blur-xl rounded-xl border border-blue-400/30 shadow-lg shadow-blue-500/20 pointer-events-auto">
+        <div className="ml-auto bg-black/60 backdrop-blur-xl rounded-xl border border-blue-400/30 shadow-lg shadow-blue-500/20 pointer-events-auto">
           <ConnectButton />
         </div>
       </div>

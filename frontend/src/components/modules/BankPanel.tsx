@@ -19,7 +19,7 @@ interface BankPanelProps {
 }
 
 export function BankPanel({ onClose, balance, bankDeposit }: BankPanelProps) {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { deposit, withdraw } = useDeFiBank();
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -28,13 +28,13 @@ export function BankPanel({ onClose, balance, bankDeposit }: BankPanelProps) {
   );
 
   const handleDeposit = () => {
-    if (!depositAmount || !deposit) return;
+    if (!depositAmount || !deposit || !isConnected) return;
     deposit({ args: [parseEther(depositAmount)] });
     setDepositAmount("");
   };
 
   const handleWithdraw = () => {
-    if (!withdrawAmount || !withdraw) return;
+    if (!withdrawAmount || !withdraw || !isConnected) return;
     withdraw({ args: [parseEther(withdrawAmount)] });
     setWithdrawAmount("");
   };
@@ -118,6 +118,22 @@ export function BankPanel({ onClose, balance, bankDeposit }: BankPanelProps) {
             ))}
           </div>
 
+          {/* Wallet Connection Prompt */}
+          {!isConnected && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-yellow-500/20 border border-yellow-400/50 rounded-xl p-4 text-center"
+            >
+              <p className="text-yellow-200 font-semibold">
+                🔐 Connect your wallet to use banking services
+              </p>
+              <p className="text-yellow-300/70 text-sm mt-1">
+                Click the "Connect Wallet" button in the top right corner
+              </p>
+            </motion.div>
+          )}
+
           {/* Deposit Tab */}
           {activeTab === "deposit" && (
             <motion.div
@@ -134,12 +150,14 @@ export function BankPanel({ onClose, balance, bankDeposit }: BankPanelProps) {
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-4 py-3 bg-black/30 border border-blue-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+                  disabled={!isConnected}
+                  className="w-full px-4 py-3 bg-black/30 border border-blue-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <button
                 onClick={handleDeposit}
-                className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105"
+                disabled={!isConnected || !depositAmount}
+                className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 Deposit to Bank
               </button>
