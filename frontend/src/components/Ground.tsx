@@ -250,29 +250,6 @@ function DummyBuilding({
   );
 }
 
-// Street Lamp component
-function StreetLamp({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {/* Pole */}
-      <mesh position={[0, 3, 0]}>
-        <cylinderGeometry args={[0.08, 0.1, 6, 8]} />
-        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
-      </mesh>
-      {/* Lamp head */}
-      <mesh position={[0, 5.8, 0]}>
-        <sphereGeometry args={[0.25, 8, 8]} />
-        <meshBasicMaterial color="#FFF8DC" />
-      </mesh>
-      {/* Lamp housing */}
-      <mesh position={[0, 5.5, 0]}>
-        <cylinderGeometry args={[0.3, 0.35, 0.5, 8]} />
-        <meshStandardMaterial color="#1e293b" metalness={0.6} />
-      </mesh>
-    </group>
-  );
-}
-
 // Park Bench component
 function ParkBench({ position }: { position: [number, number, number] }) {
   return (
@@ -298,70 +275,66 @@ function ParkBench({ position }: { position: [number, number, number] }) {
   );
 }
 
-// Fountain component
-function Fountain({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {/* Base */}
-      <mesh position={[0, 0.3, 0]}>
-        <cylinderGeometry args={[2.5, 2.8, 0.6, 12]} />
-        <meshStandardMaterial color="#bfdbfe" metalness={0.3} />
-      </mesh>
-      {/* Middle tier */}
-      <mesh position={[0, 0.8, 0]}>
-        <cylinderGeometry args={[1.5, 1.7, 0.4, 12]} />
-        <meshStandardMaterial color="#93c5fd" metalness={0.3} />
-      </mesh>
-      {/* Top tier */}
-      <mesh position={[0, 1.3, 0]}>
-        <cylinderGeometry args={[0.8, 1.0, 0.3, 12]} />
-        <meshStandardMaterial color="#60a5fa" metalness={0.3} />
-      </mesh>
-      {/* Water spray effect */}
-      <mesh position={[0, 1.8, 0]}>
-        <coneGeometry args={[0.3, 0.8, 8]} />
-        <meshBasicMaterial color="#7dd3fc" transparent opacity={0.5} />
-      </mesh>
-    </group>
-  );
-}
-
-// Traffic Cone component
-function TrafficCone({ position }: { position: [number, number, number] }) {
+// Trash Can component
+function TrashCan({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
       <mesh position={[0, 0.4, 0]}>
-        <coneGeometry args={[0.3, 0.8, 8]} />
-        <meshStandardMaterial color="#f97316" />
+        <cylinderGeometry args={[0.25, 0.3, 0.8, 8]} />
+        <meshStandardMaterial color="#475569" metalness={0.5} />
       </mesh>
-      {/* White stripe */}
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.22, 0.22, 0.15, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+      <mesh position={[0, 0.85, 0]}>
+        <cylinderGeometry args={[0.28, 0.28, 0.1, 8]} />
+        <meshStandardMaterial color="#1e293b" />
       </mesh>
     </group>
   );
 }
 
-// Bus Stop component
-function BusStop({ position }: { position: [number, number, number] }) {
+// Mailbox component
+function Mailbox({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      {/* Pole */}
-      <mesh position={[0, 1.5, 0]}>
-        <cylinderGeometry args={[0.08, 0.08, 3, 8]} />
-        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      {/* Post */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 1, 8]} />
+        <meshStandardMaterial color="#64748b" />
       </mesh>
-      {/* Sign */}
-      <mesh position={[0, 2.8, 0]}>
-        <boxGeometry args={[0.8, 0.6, 0.05]} />
-        <meshStandardMaterial color="#3b82f6" />
+      {/* Box */}
+      <mesh position={[0, 1.1, 0]}>
+        <boxGeometry args={[0.4, 0.3, 0.3]} />
+        <meshStandardMaterial color="#3b82f6" metalness={0.6} />
       </mesh>
-      {/* Bench shelter roof */}
-      <mesh position={[0.5, 2.5, 0]}>
-        <boxGeometry args={[1.5, 0.05, 1.2]} />
-        <meshStandardMaterial color="#64748b" metalness={0.5} transparent opacity={0.7} />
+      {/* Flag */}
+      <mesh position={[0.25, 1.15, 0]}>
+        <boxGeometry args={[0.15, 0.05, 0.02]} />
+        <meshStandardMaterial color="#ef4444" />
       </mesh>
+    </group>
+  );
+}
+
+// Fire Hydrant component
+function FireHydrant({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Main body */}
+      <mesh position={[0, 0.35, 0]}>
+        <cylinderGeometry args={[0.18, 0.2, 0.7, 8]} />
+        <meshStandardMaterial color="#ef4444" metalness={0.6} />
+      </mesh>
+      {/* Top cap */}
+      <mesh position={[0, 0.75, 0]}>
+        <cylinderGeometry args={[0.12, 0.18, 0.15, 8]} />
+        <meshStandardMaterial color="#dc2626" metalness={0.6} />
+      </mesh>
+      {/* Outlets - left and right */}
+      {[-0.2, 0.2].map((x, i) => (
+        <mesh key={i} position={[x, 0.45, 0]}>
+          <cylinderGeometry args={[0.06, 0.06, 0.15, 6]} />
+          <meshStandardMaterial color="#7c2d12" metalness={0.8} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -499,111 +472,85 @@ export function Ground() {
       <Tree position={[12, 0, 12]} />
       <Tree position={[27, 0, 27]} />
 
-      {/* Dense forest around farm area (SE corner at [52, 52]) */}
+      {/* Dense forest around farm area (SE corner at [52, 52]) - FIXED: removed trees on roads */}
       <Tree position={[42, 0, 40]} />
       <Tree position={[40, 0, 42]} />
       <Tree position={[45, 0, 45]} />
-      <Tree position={[38, 0, 48]} />
-      <Tree position={[48, 0, 38]} />
-      <Tree position={[42, 0, 62]} />
-      <Tree position={[45, 0, 65]} />
-      <Tree position={[40, 0, 68]} />
-      <Tree position={[62, 0, 42]} />
-      <Tree position={[65, 0, 45]} />
-      <Tree position={[68, 0, 40]} />
       <Tree position={[58, 0, 65]} />
       <Tree position={[65, 0, 58]} />
-      <Tree position={[70, 0, 52]} />
-      <Tree position={[52, 0, 70]} />
-      <Tree position={[48, 0, 70]} />
-      <Tree position={[70, 0, 48]} />
+      <Tree position={[62, 0, 62]} />
+      <Tree position={[68, 0, 68]} />
+      <Tree position={[60, 0, 67]} />
+      <Tree position={[67, 0, 60]} />
 
-      {/* Traffic Signals on ALL roadsides at regular intervals */}
-      {/* Main vertical road (x=0) */}
-      <TrafficSignal position={[6, 0, -60]} delay={0} />
-      <TrafficSignal position={[6, 0, -45]} delay={3} />
-      <TrafficSignal position={[6, 0, -25]} delay={6} />
-      <TrafficSignal position={[6, 0, 25]} delay={0} />
-      <TrafficSignal position={[6, 0, 45]} delay={3} />
-      <TrafficSignal position={[6, 0, 60]} delay={6} />
+      {/* TRAFFIC SIGNALS - Fixed placement at key intersections */}
+      {/* Main Center Intersection (0, 0) - 4 corners */}
+      <TrafficSignal position={[6, 0, 6]} delay={0} />
+      <TrafficSignal position={[-6, 0, -6]} delay={0} />
+      <TrafficSignal position={[6, 0, -6]} delay={5} />
+      <TrafficSignal position={[-6, 0, 6]} delay={5} />
 
-      {/* Main horizontal road (z=0) */}
-      <TrafficSignal position={[-60, 0, 6]} delay={0} />
-      <TrafficSignal position={[-45, 0, 6]} delay={3} />
-      <TrafficSignal position={[-25, 0, 6]} delay={6} />
-      <TrafficSignal position={[25, 0, 6]} delay={0} />
-      <TrafficSignal position={[45, 0, 6]} delay={3} />
-      <TrafficSignal position={[60, 0, 6]} delay={6} />
+      {/* Secondary Intersections - where vertical roads meet horizontal roads */}
+      {/* Left vertical (-35) intersections */}
+      <TrafficSignal position={[-31, 0, -39]} delay={2} />
+      <TrafficSignal position={[-39, 0, -31]} delay={2} />
+      <TrafficSignal position={[-31, 0, 39]} delay={3} />
+      <TrafficSignal position={[-39, 0, 31]} delay={3} />
 
-      {/* Left vertical road (x=-35) */}
-      <TrafficSignal position={[-40, 0, -50]} delay={2} />
-      <TrafficSignal position={[-40, 0, -25]} delay={5} />
-      <TrafficSignal position={[-40, 0, 25]} delay={1} />
-      <TrafficSignal position={[-40, 0, 50]} delay={4} />
+      {/* Right vertical (35) intersections */}
+      <TrafficSignal position={[31, 0, -39]} delay={4} />
+      <TrafficSignal position={[39, 0, -31]} delay={4} />
+      <TrafficSignal position={[31, 0, 39]} delay={1} />
+      <TrafficSignal position={[39, 0, 31]} delay={1} />
 
-      {/* Right vertical road (x=35) */}
-      <TrafficSignal position={[40, 0, -50]} delay={2} />
-      <TrafficSignal position={[40, 0, -25]} delay={5} />
-      <TrafficSignal position={[40, 0, 25]} delay={1} />
-      <TrafficSignal position={[40, 0, 50]} delay={4} />
+      {/* Outer road connections - evenly spaced */}
+      <TrafficSignal position={[6, 0, -50]} delay={6} />
+      <TrafficSignal position={[6, 0, 50]} delay={6} />
+      <TrafficSignal position={[-6, 0, -50]} delay={6} />
+      <TrafficSignal position={[-6, 0, 50]} delay={6} />
+      <TrafficSignal position={[-50, 0, 6]} delay={7} />
+      <TrafficSignal position={[50, 0, 6]} delay={7} />
+      <TrafficSignal position={[-50, 0, -6]} delay={7} />
+      <TrafficSignal position={[50, 0, -6]} delay={7} />
 
-      {/* Top horizontal road (z=-35) */}
-      <TrafficSignal position={[-50, 0, -40]} delay={1} />
-      <TrafficSignal position={[-25, 0, -40]} delay={4} />
-      <TrafficSignal position={[25, 0, -40]} delay={2} />
-      <TrafficSignal position={[50, 0, -40]} delay={5} />
+      {/* PARK BENCHES - In green areas */}
+      <ParkBench position={[-68, 0, -55]} />
+      <ParkBench position={[-55, 0, -68]} />
+      <ParkBench position={[68, 0, -55]} />
+      <ParkBench position={[55, 0, -68]} />
+      <ParkBench position={[-68, 0, 55]} />
+      <ParkBench position={[-55, 0, 68]} />
+      <ParkBench position={[68, 0, 55]} />
+      <ParkBench position={[55, 0, 68]} />
+      <ParkBench position={[-25, 0, -25]} />
+      <ParkBench position={[25, 0, 25]} />
 
-      {/* Bottom horizontal road (z=35) */}
-      <TrafficSignal position={[-50, 0, 40]} delay={1} />
-      <TrafficSignal position={[-25, 0, 40]} delay={4} />
-      <TrafficSignal position={[25, 0, 40]} delay={2} />
-      <TrafficSignal position={[50, 0, 40]} delay={5} />
+      {/* TRASH CANS - Near benches and intersections */}
+      <TrashCan position={[-67, 0, -57]} />
+      <TrashCan position={[67, 0, -57]} />
+      <TrashCan position={[-67, 0, 57]} />
+      <TrashCan position={[67, 0, 57]} />
+      <TrashCan position={[-10, 0, -10]} />
+      <TrashCan position={[10, 0, -10]} />
+      <TrashCan position={[-10, 0, 10]} />
+      <TrashCan position={[10, 0, 10]} />
 
-      {/* Street Lamps along main roads */}
-      <StreetLamp position={[-8, 0, -60]} />
-      <StreetLamp position={[-8, 0, -40]} />
-      <StreetLamp position={[-8, 0, -20]} />
-      <StreetLamp position={[-8, 0, 0]} />
-      <StreetLamp position={[-8, 0, 20]} />
-      <StreetLamp position={[-8, 0, 40]} />
-      <StreetLamp position={[-8, 0, 60]} />
-      
-      <StreetLamp position={[8, 0, -60]} />
-      <StreetLamp position={[8, 0, -40]} />
-      <StreetLamp position={[8, 0, -20]} />
-      <StreetLamp position={[8, 0, 20]} />
-      <StreetLamp position={[8, 0, 40]} />
-      <StreetLamp position={[8, 0, 60]} />
+      {/* MAILBOXES - Scattered in residential areas */}
+      <Mailbox position={[-48, 0, -48]} />
+      <Mailbox position={[48, 0, -48]} />
+      <Mailbox position={[-48, 0, 48]} />
+      <Mailbox position={[12, 0, 20]} />
+      <Mailbox position={[-20, 0, -12]} />
 
-      <StreetLamp position={[-60, 0, -8]} />
-      <StreetLamp position={[-40, 0, -8]} />
-      <StreetLamp position={[-20, 0, -8]} />
-      <StreetLamp position={[20, 0, -8]} />
-      <StreetLamp position={[40, 0, -8]} />
-      <StreetLamp position={[60, 0, -8]} />
-
-      {/* Park Benches in green areas */}
-      <ParkBench position={[-65, 0, -50]} />
-      <ParkBench position={[-50, 0, -65]} />
-      <ParkBench position={[65, 0, -50]} />
-      <ParkBench position={[50, 0, -65]} />
-      <ParkBench position={[-65, 0, 50]} />
-      <ParkBench position={[65, 0, 50]} />
-
-      {/* Fountain in central park area */}
-      <Fountain position={[-25, 0, 25]} />
-
-      {/* Bus Stops at key locations */}
-      <BusStop position={[-12, 0, -8]} />
-      <BusStop position={[12, 0, 8]} />
-      <BusStop position={[-45, 0, -8]} />
-      <BusStop position={[45, 0, 8]} />
-
-      {/* Traffic Cones for construction/detail */}
-      <TrafficCone position={[30, 0, -12]} />
-      <TrafficCone position={[30, 0, -13]} />
-      <TrafficCone position={[-30, 0, 12]} />
-      <TrafficCone position={[-30, 0, 13]} />
+      {/* FIRE HYDRANTS - Safety equipment near roads */}
+      <FireHydrant position={[-8, 0, -40]} />
+      <FireHydrant position={[8, 0, -40]} />
+      <FireHydrant position={[-8, 0, 40]} />
+      <FireHydrant position={[8, 0, 40]} />
+      <FireHydrant position={[-40, 0, -8]} />
+      <FireHydrant position={[40, 0, -8]} />
+      <FireHydrant position={[-40, 0, 8]} />
+      <FireHydrant position={[40, 0, 8]} />
 
       {/* SYSTEMATIC DUMMY BUILDINGS - Organized in grid patches, NO COLLISIONS */}
 
@@ -695,7 +642,7 @@ export function Ground() {
         depth={4.5}
       />
 
-      {/* FAR SW QUADRANT (x: -70 to -40, z: 40 to 70) - around Hospital [-52, 52] */}
+      {/* FAR SW QUADRANT (x: -70 to -40, z: 40 to 70) - around Hospital [-52, 52] - FIXED: removed collision */}
       <DummyBuilding
         position={[-60, 0, 60]}
         color="#8e44ad"
@@ -703,13 +650,7 @@ export function Ground() {
         height={9}
         depth={5}
       />
-      <DummyBuilding
-        position={[-60, 0, 52]}
-        color="#d35400"
-        width={4.5}
-        height={7.5}
-        depth={4}
-      />
+      {/* REMOVED: Building at [-60, 0, 52] - was colliding with Hospital */}
       <DummyBuilding
         position={[-60, 0, 44]}
         color="#27ae60"
@@ -724,13 +665,7 @@ export function Ground() {
         height={10}
         depth={5}
       />
-      <DummyBuilding
-        position={[-44, 0, 52]}
-        color="#e74c3c"
-        width={5}
-        height={7}
-        depth={4}
-      />
+      {/* REMOVED: Building at [-44, 0, 52] - was too close to Hospital */}
       <DummyBuilding
         position={[-44, 0, 44]}
         color="#3498db"
