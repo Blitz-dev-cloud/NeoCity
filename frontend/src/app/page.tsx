@@ -45,6 +45,8 @@ export default function Home() {
   const [activeModal, setActiveModal] = useState<BuildingType | null>(null);
   const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [particles, setParticles] = useState<Array<{x: number, y: number, delay: number, duration: number}>>([]);
+  const [blobs, setBlobs] = useState<Array<{x: number, y: number, delay: number}>>([]);
 
   // Hooks (only used when connected)
   const { useBalance } = useDeFiToken();
@@ -57,6 +59,25 @@ export default function Home() {
   const { data: bankDeposit } = useDeposit(address);
   const { data: isVerified } = useIsVerified(address);
   const { data: proposalCount } = useProposalCount();
+
+  // Generate random values on client side only
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 40 }, () => ({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: Math.random() * 3 + 2,
+      }))
+    );
+    setBlobs(
+      Array.from({ length: 6 }, (_, i) => ({
+        x: Math.random() * 200 - 100,
+        y: Math.random() * 200 - 100,
+        delay: i * 0.5,
+      }))
+    );
+  }, []);
 
   // Loading animation timer
   useEffect(() => {
@@ -160,7 +181,7 @@ export default function Home() {
 
         {/* Animated Fluid Blobs */}
         <div className="absolute inset-0">
-          {[...Array(6)].map((_, i) => (
+          {blobs.map((blob, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full mix-blend-screen filter blur-3xl"
@@ -179,8 +200,8 @@ export default function Home() {
                 ][i],
               }}
               animate={{
-                x: [0, Math.random() * 200 - 100, 0],
-                y: [0, Math.random() * 200 - 100, 0],
+                x: [0, blob.x, 0],
+                y: [0, blob.y, 0],
                 scale: [1, 1.3, 1],
                 opacity: [0.3, 0.6, 0.3],
               }}
@@ -188,7 +209,7 @@ export default function Home() {
                 duration: 8 + i * 2,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: i * 0.5,
+                delay: blob.delay,
               }}
             />
           ))}
@@ -214,26 +235,26 @@ export default function Home() {
 
         {/* Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(40)].map((_, i) => (
+          {particles.map((particle, i) => (
             <motion.div
               key={i}
               className="absolute w-1 h-1 bg-white rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
                 boxShadow: "0 0 10px rgba(255,255,255,0.5)",
               }}
               animate={{
                 y: [0, -100, 0],
-                x: [0, Math.random() * 30 - 15, 0],
+                x: [0, particle.x * 0.3 - 15, 0],
                 opacity: [0, 1, 0],
                 scale: [0, 1.5, 0],
               }}
               transition={{
-                duration: Math.random() * 3 + 2,
+                duration: particle.duration,
                 repeat: Infinity,
                 ease: "easeOut",
-                delay: Math.random() * 2,
+                delay: particle.delay,
               }}
             />
           ))}

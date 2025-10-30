@@ -99,13 +99,18 @@ export function CityScene3D({
       camera={{ position: [50, 35, 50], fov: 60 }}
     >
       <color attach="background" args={["#87CEEB"]} />
+      {/* Reduced fog for better visibility */}
+      <fog attach="fog" args={["#87CEEB", 80, 200]} />
 
       <Suspense fallback={null}>
-        {/* Lighting */}
-        <ambientLight intensity={0.8} />
+        {/* Enhanced Lighting */}
+        <ambientLight intensity={1.2} />
+
+        {/* Main sun light - warm sunlight */}
         <directionalLight
-          position={[10, 20, 10]}
-          intensity={1.5}
+          position={[50, 80, 50]}
+          intensity={2.8}
+          color="#FFF8DC"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -113,19 +118,60 @@ export function CityScene3D({
           shadow-camera-right={100}
           shadow-camera-top={100}
           shadow-camera-bottom={-100}
+          shadow-bias={-0.0001}
         />
-        <pointLight position={[-10, 10, -10]} intensity={0.5} color="#a855f7" />
-        <pointLight position={[10, 10, 10]} intensity={0.5} color="#3b82f6" />
 
-        {/* Stars */}
+        {/* Fill lights for better visibility - increased */}
+        <directionalLight
+          position={[-30, 40, -30]}
+          intensity={1.2}
+          color="#FFF5E6"
+        />
+
+        {/* Accent lights around key buildings - brighter */}
+        <pointLight
+          position={[-52, 15, -52]}
+          intensity={2.5}
+          color="#3b82f6"
+          distance={35}
+        />
+        <pointLight
+          position={[-52, 12, 52]}
+          intensity={2.5}
+          color="#ef4444"
+          distance={35}
+        />
+        <pointLight
+          position={[52, 10, -52]}
+          intensity={2.0}
+          color="#f59e0b"
+          distance={30}
+        />
+        <pointLight
+          position={[-17.5, 10, -17.5]}
+          intensity={2.2}
+          color="#a855f7"
+          distance={30}
+        />
+        <pointLight
+          position={[52, 12, 52]}
+          intensity={2.0}
+          color="#22c55e"
+          distance={35}
+        />
+
+        {/* Hemisphere light for natural sky illumination - increased */}
+        <hemisphereLight args={["#87CEEB", "#2d5a2d", 0.8]} />
+
+        {/* Stars - visible during day */}
         <Stars
           radius={100}
           depth={50}
-          count={5000}
-          factor={4}
+          count={3000}
+          factor={3}
           saturation={0}
           fade
-          speed={1}
+          speed={0.5}
         />
 
         {/* Ground */}

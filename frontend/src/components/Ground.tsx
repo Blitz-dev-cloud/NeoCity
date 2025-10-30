@@ -164,13 +164,13 @@ function TrafficSignal({
   );
 }
 
-// Dummy Building component - proper building structure with windows
+// Dummy Building component - Optimized with window details
 function DummyBuilding({
   position,
   color,
-  width = 4,
-  height = 5,
-  depth = 3.5,
+  width = 5,
+  height = 8,
+  depth = 4.5,
 }: {
   position: [number, number, number];
   color: string;
@@ -178,39 +178,189 @@ function DummyBuilding({
   height?: number;
   depth?: number;
 }) {
+  const floors = Math.floor(height / 1.8);
+  const windowsPerRow = Math.floor(width / 1.2);
+
   return (
     <group position={position}>
-      {/* Main building */}
+      {/* Main building with emissive glow */}
       <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.6}
+          metalness={0.2}
+          emissive={color}
+          emissiveIntensity={0.15}
+        />
       </mesh>
 
-      {/* Windows - front face */}
-      {[...Array(Math.floor(height / 1.5))].map((_, floor) =>
-        [...Array(Math.floor(width / 1.5))].map((_, col) => (
+      {/* Windows - Front Face Only (optimized) */}
+      {[...Array(floors)].map((_, floor) =>
+        [...Array(windowsPerRow)].map((_, col) => (
           <mesh
-            key={`front-${floor}-${col}`}
+            key={`w-${floor}-${col}`}
             position={[
-              (col - Math.floor(width / 1.5) / 2) * 1.2,
-              floor * 1.5 + 1,
+              (col - windowsPerRow / 2 + 0.5) * 1.2,
+              floor * 1.8 + 1.5,
               depth / 2 + 0.02,
             ]}
           >
-            <boxGeometry args={[0.6, 0.8, 0.05]} />
-            <meshStandardMaterial
-              color="#87ceeb"
-              emissive="#60a5fa"
-              emissiveIntensity={0.2}
-            />
+            <planeGeometry args={[0.7, 1]} />
+            <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} />
           </mesh>
         ))
       )}
 
-      {/* Roof */}
-      <mesh position={[0, height + 0.2, 0]}>
-        <boxGeometry args={[width + 0.2, 0.4, depth + 0.2]} />
-        <meshStandardMaterial color="#2c3e50" />
+      {/* Side window hints - just 2 planes for performance */}
+      <mesh
+        position={[width / 2 + 0.01, height / 2, 0]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[depth * 0.8, height * 0.85]} />
+        <meshBasicMaterial color="#60a5fa" transparent opacity={0.3} />
+      </mesh>
+      <mesh
+        position={[-width / 2 - 0.01, height / 2, 0]}
+        rotation={[0, -Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[depth * 0.8, height * 0.85]} />
+        <meshBasicMaterial color="#60a5fa" transparent opacity={0.3} />
+      </mesh>
+
+      {/* Roof with edge detail */}
+      <mesh position={[0, height + 0.25, 0]} castShadow>
+        <boxGeometry args={[width + 0.3, 0.5, depth + 0.3]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.3} roughness={0.7} />
+      </mesh>
+
+      {/* Corner accent lights - 4 small lights */}
+      {[
+        [width / 2 - 0.2, depth / 2 - 0.2],
+        [-width / 2 + 0.2, depth / 2 - 0.2],
+        [width / 2 - 0.2, -depth / 2 + 0.2],
+        [-width / 2 + 0.2, -depth / 2 + 0.2],
+      ].map((pos, i) => (
+        <mesh key={`light-${i}`} position={[pos[0], height + 0.4, pos[1]]}>
+          <sphereGeometry args={[0.12, 6, 6]} />
+          <meshBasicMaterial color="#fbbf24" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Street Lamp component
+function StreetLamp({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Pole */}
+      <mesh position={[0, 3, 0]}>
+        <cylinderGeometry args={[0.08, 0.1, 6, 8]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      </mesh>
+      {/* Lamp head */}
+      <mesh position={[0, 5.8, 0]}>
+        <sphereGeometry args={[0.25, 8, 8]} />
+        <meshBasicMaterial color="#FFF8DC" />
+      </mesh>
+      {/* Lamp housing */}
+      <mesh position={[0, 5.5, 0]}>
+        <cylinderGeometry args={[0.3, 0.35, 0.5, 8]} />
+        <meshStandardMaterial color="#1e293b" metalness={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+// Park Bench component
+function ParkBench({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Seat */}
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[1.8, 0.1, 0.5]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      {/* Backrest */}
+      <mesh position={[0, 0.9, -0.2]}>
+        <boxGeometry args={[1.8, 0.6, 0.1]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
+      {/* Legs */}
+      {[-0.7, 0.7].map((x, i) => (
+        <mesh key={i} position={[x, 0.25, 0]}>
+          <boxGeometry args={[0.1, 0.5, 0.4]} />
+          <meshStandardMaterial color="#2c3e50" metalness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Fountain component
+function Fountain({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Base */}
+      <mesh position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[2.5, 2.8, 0.6, 12]} />
+        <meshStandardMaterial color="#bfdbfe" metalness={0.3} />
+      </mesh>
+      {/* Middle tier */}
+      <mesh position={[0, 0.8, 0]}>
+        <cylinderGeometry args={[1.5, 1.7, 0.4, 12]} />
+        <meshStandardMaterial color="#93c5fd" metalness={0.3} />
+      </mesh>
+      {/* Top tier */}
+      <mesh position={[0, 1.3, 0]}>
+        <cylinderGeometry args={[0.8, 1.0, 0.3, 12]} />
+        <meshStandardMaterial color="#60a5fa" metalness={0.3} />
+      </mesh>
+      {/* Water spray effect */}
+      <mesh position={[0, 1.8, 0]}>
+        <coneGeometry args={[0.3, 0.8, 8]} />
+        <meshBasicMaterial color="#7dd3fc" transparent opacity={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+// Traffic Cone component
+function TrafficCone({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]}>
+        <coneGeometry args={[0.3, 0.8, 8]} />
+        <meshStandardMaterial color="#f97316" />
+      </mesh>
+      {/* White stripe */}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.22, 0.22, 0.15, 8]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+    </group>
+  );
+}
+
+// Bus Stop component
+function BusStop({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Pole */}
+      <mesh position={[0, 1.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 3, 8]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      </mesh>
+      {/* Sign */}
+      <mesh position={[0, 2.8, 0]}>
+        <boxGeometry args={[0.8, 0.6, 0.05]} />
+        <meshStandardMaterial color="#3b82f6" />
+      </mesh>
+      {/* Bench shelter roof */}
+      <mesh position={[0.5, 2.5, 0]}>
+        <boxGeometry args={[1.5, 0.05, 1.2]} />
+        <meshStandardMaterial color="#64748b" metalness={0.5} transparent opacity={0.7} />
       </mesh>
     </group>
   );
@@ -409,168 +559,214 @@ export function Ground() {
       <TrafficSignal position={[25, 0, 40]} delay={2} />
       <TrafficSignal position={[50, 0, 40]} delay={5} />
 
+      {/* Street Lamps along main roads */}
+      <StreetLamp position={[-8, 0, -60]} />
+      <StreetLamp position={[-8, 0, -40]} />
+      <StreetLamp position={[-8, 0, -20]} />
+      <StreetLamp position={[-8, 0, 0]} />
+      <StreetLamp position={[-8, 0, 20]} />
+      <StreetLamp position={[-8, 0, 40]} />
+      <StreetLamp position={[-8, 0, 60]} />
+      
+      <StreetLamp position={[8, 0, -60]} />
+      <StreetLamp position={[8, 0, -40]} />
+      <StreetLamp position={[8, 0, -20]} />
+      <StreetLamp position={[8, 0, 20]} />
+      <StreetLamp position={[8, 0, 40]} />
+      <StreetLamp position={[8, 0, 60]} />
+
+      <StreetLamp position={[-60, 0, -8]} />
+      <StreetLamp position={[-40, 0, -8]} />
+      <StreetLamp position={[-20, 0, -8]} />
+      <StreetLamp position={[20, 0, -8]} />
+      <StreetLamp position={[40, 0, -8]} />
+      <StreetLamp position={[60, 0, -8]} />
+
+      {/* Park Benches in green areas */}
+      <ParkBench position={[-65, 0, -50]} />
+      <ParkBench position={[-50, 0, -65]} />
+      <ParkBench position={[65, 0, -50]} />
+      <ParkBench position={[50, 0, -65]} />
+      <ParkBench position={[-65, 0, 50]} />
+      <ParkBench position={[65, 0, 50]} />
+
+      {/* Fountain in central park area */}
+      <Fountain position={[-25, 0, 25]} />
+
+      {/* Bus Stops at key locations */}
+      <BusStop position={[-12, 0, -8]} />
+      <BusStop position={[12, 0, 8]} />
+      <BusStop position={[-45, 0, -8]} />
+      <BusStop position={[45, 0, 8]} />
+
+      {/* Traffic Cones for construction/detail */}
+      <TrafficCone position={[30, 0, -12]} />
+      <TrafficCone position={[30, 0, -13]} />
+      <TrafficCone position={[-30, 0, 12]} />
+      <TrafficCone position={[-30, 0, 13]} />
+
       {/* SYSTEMATIC DUMMY BUILDINGS - Organized in grid patches, NO COLLISIONS */}
 
-      {/* FAR NW QUADRANT (x: -70 to -40, z: -70 to -40) - around Bank [-52, -52] */}
+      {/* FAR NW QUADRANT (x: -70 to 40, z: -70 to -40) - around Bank [-52, -52] */}
       <DummyBuilding
         position={[-60, 0, -60]}
         color="#e74c3c"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-60, 0, -52]}
         color="#3498db"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-60, 0, -44]}
         color="#9b59b6"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-44, 0, -60]}
         color="#f39c12"
-        width={3}
-        height={6.5}
-        depth={4}
+        width={4}
+        height={10}
+        depth={5}
       />
       <DummyBuilding
         position={[-44, 0, -52]}
         color="#1abc9c"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[-44, 0, -44]}
         color="#e67e22"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8.5}
+        depth={4.5}
       />
 
       {/* FAR NE QUADRANT (x: 40 to 70, z: -70 to -40) - around Shop [52, -52] */}
       <DummyBuilding
         position={[60, 0, -60]}
         color="#2ecc71"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9}
+        depth={5}
       />
       <DummyBuilding
         position={[60, 0, -52]}
         color="#95a5a6"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[60, 0, -44]}
         color="#34495e"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[44, 0, -60]}
         color="#16a085"
-        width={3}
-        height={6.5}
-        depth={4}
+        width={4}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[44, 0, -52]}
         color="#c0392b"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[44, 0, -44]}
         color="#2980b9"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8}
+        depth={4.5}
       />
 
       {/* FAR SW QUADRANT (x: -70 to -40, z: 40 to 70) - around Hospital [-52, 52] */}
       <DummyBuilding
         position={[-60, 0, 60]}
         color="#8e44ad"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9}
+        depth={5}
       />
       <DummyBuilding
         position={[-60, 0, 52]}
         color="#d35400"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-60, 0, 44]}
         color="#27ae60"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-44, 0, 60]}
         color="#f1c40f"
-        width={3}
-        height={6.5}
-        depth={4}
+        width={4}
+        height={10}
+        depth={5}
       />
       <DummyBuilding
         position={[-44, 0, 52]}
         color="#e74c3c"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[-44, 0, 44]}
         color="#3498db"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8.5}
+        depth={4.5}
       />
 
       {/* FAR SE QUADRANT (x: 40 to 70, z: 40 to 70) - around Traffic [62, 62] */}
       <DummyBuilding
         position={[70, 0, 70]}
         color="#9b59b6"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[70, 0, 62]}
         color="#1abc9c"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[70, 0, 54]}
         color="#e67e22"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[54, 0, 70]}
         color="#95a5a6"
-        width={4.5}
-        height={6}
-        depth={4}
+        width={5.5}
+        height={9}
+        depth={5}
       />
       {/* Keep some space around Traffic [62, 62] */}
 
@@ -578,436 +774,436 @@ export function Ground() {
       <DummyBuilding
         position={[-60, 0, -20]}
         color="#e67e22"
-        width={4}
-        height={5.5}
-        depth={3.5}
+        width={5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-52, 0, -20]}
         color="#95a5a6"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-44, 0, -20]}
         color="#34495e"
-        width={4.5}
-        height={6}
-        depth={4}
+        width={5.5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-60, 0, -10]}
         color="#16a085"
-        width={3}
-        height={5.5}
-        depth={3.5}
+        width={4}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-52, 0, -10]}
         color="#c0392b"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-44, 0, -10]}
         color="#2980b9"
-        width={3.5}
-        height={6}
-        depth={4}
+        width={4.5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-60, 0, 10]}
         color="#8e44ad"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-52, 0, 10]}
         color="#d35400"
-        width={3}
-        height={5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[-44, 0, 10]}
         color="#27ae60"
-        width={4}
-        height={6}
-        depth={3.5}
+        width={5}
+        height={9}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-60, 0, 20]}
         color="#f1c40f"
-        width={3.5}
-        height={5.5}
-        depth={3}
+        width={4.5}
+        height={8}
+        depth={4}
       />
       <DummyBuilding
         position={[-52, 0, 20]}
         color="#e74c3c"
-        width={4.5}
-        height={5}
-        depth={4}
+        width={5.5}
+        height={7.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-44, 0, 20]}
         color="#3498db"
-        width={3}
-        height={6}
-        depth={3.5}
+        width={4}
+        height={9.5}
+        depth={4.5}
       />
 
       {/* EAST STRIP (x: 40 to 70, z: -30 to 30) */}
       <DummyBuilding
         position={[60, 0, -20]}
         color="#27ae60"
-        width={4}
-        height={5.5}
-        depth={3.5}
+        width={5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[52, 0, -20]}
         color="#f1c40f"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[44, 0, -20]}
         color="#e74c3c"
-        width={4.5}
-        height={6}
-        depth={4}
+        width={5.5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[60, 0, -10]}
         color="#3498db"
-        width={3}
-        height={5.5}
-        depth={3.5}
+        width={4}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[52, 0, -10]}
         color="#9b59b6"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[44, 0, -10]}
         color="#1abc9c"
-        width={3.5}
-        height={6}
-        depth={4}
+        width={4.5}
+        height={9}
+        depth={5}
       />
       <DummyBuilding
         position={[60, 0, 10]}
         color="#e67e22"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[52, 0, 10]}
         color="#95a5a6"
-        width={3}
-        height={5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[44, 0, 10]}
         color="#34495e"
-        width={4}
-        height={6}
-        depth={3.5}
+        width={5}
+        height={9.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[60, 0, 20]}
         color="#16a085"
-        width={3.5}
-        height={5.5}
-        depth={3}
+        width={4.5}
+        height={8}
+        depth={4}
       />
       <DummyBuilding
         position={[52, 0, 20]}
         color="#c0392b"
-        width={4.5}
-        height={5}
-        depth={4}
+        width={5.5}
+        height={7.5}
+        depth={5}
       />
       <DummyBuilding
         position={[44, 0, 20]}
         color="#2980b9"
-        width={3}
-        height={6}
-        depth={3.5}
+        width={4}
+        height={9}
+        depth={4.5}
       />
 
       {/* NORTH STRIP (x: -30 to 30, z: -70 to -40) */}
       <DummyBuilding
         position={[-20, 0, -60]}
         color="#34495e"
-        width={4}
-        height={5.5}
-        depth={3.5}
+        width={5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-20, 0, -52]}
         color="#16a085"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-20, 0, -44]}
         color="#c0392b"
-        width={4.5}
-        height={6}
-        depth={4}
+        width={5.5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-10, 0, -60]}
         color="#2980b9"
-        width={3}
-        height={5.5}
-        depth={3.5}
+        width={4}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-10, 0, -52]}
         color="#8e44ad"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-10, 0, -44]}
         color="#d35400"
-        width={3.5}
-        height={6}
-        depth={4}
+        width={4.5}
+        height={9}
+        depth={5}
       />
       <DummyBuilding
         position={[10, 0, -60]}
         color="#27ae60"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[10, 0, -52]}
         color="#f1c40f"
-        width={3}
-        height={5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[10, 0, -44]}
         color="#e74c3c"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[20, 0, -60]}
         color="#3498db"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[20, 0, -52]}
         color="#9b59b6"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[20, 0, -44]}
         color="#1abc9c"
-        width={3}
-        height={6}
-        depth={4}
+        width={4}
+        height={9}
+        depth={5}
       />
 
       {/* SOUTH STRIP (x: -30 to 30, z: 40 to 70) */}
       <DummyBuilding
         position={[-20, 0, 60]}
         color="#e67e22"
-        width={4}
-        height={5.5}
-        depth={3.5}
+        width={5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-20, 0, 52]}
         color="#95a5a6"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-20, 0, 44]}
         color="#34495e"
-        width={4.5}
-        height={6}
-        depth={4}
+        width={5.5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[-10, 0, 60]}
         color="#16a085"
-        width={3}
-        height={5.5}
-        depth={3.5}
+        width={4}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[-10, 0, 52]}
         color="#c0392b"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-10, 0, 44]}
         color="#2980b9"
-        width={3.5}
-        height={6}
-        depth={4}
+        width={4.5}
+        height={9}
+        depth={5}
       />
       <DummyBuilding
         position={[10, 0, 60]}
         color="#8e44ad"
-        width={4.5}
-        height={5.5}
-        depth={3.5}
+        width={5.5}
+        height={8.5}
+        depth={4.5}
       />
       <DummyBuilding
         position={[10, 0, 52]}
         color="#d35400"
-        width={3}
-        height={5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[10, 0, 44]}
         color="#27ae60"
-        width={4}
-        height={6}
-        depth={4}
+        width={5}
+        height={9.5}
+        depth={5}
       />
       <DummyBuilding
         position={[20, 0, 60]}
         color="#f1c40f"
-        width={3.5}
-        height={5.5}
-        depth={3.5}
+        width={4.5}
+        height={8}
+        depth={4.5}
       />
       <DummyBuilding
         position={[20, 0, 52]}
         color="#e74c3c"
-        width={4}
-        height={5}
-        depth={3}
+        width={5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[20, 0, 44]}
         color="#3498db"
-        width={3}
-        height={6}
-        depth={4}
+        width={4}
+        height={9}
+        depth={5}
       />
 
       {/* INNER NW QUADRANT (x: -30 to -10, z: -30 to -10) - around City Hall [-17, -17] */}
       <DummyBuilding
         position={[-25, 0, -25]}
         color="#9b59b6"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[-25, 0, -10]}
         color="#1abc9c"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-10, 0, -25]}
         color="#e67e22"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
 
       {/* INNER NE QUADRANT (x: 10 to 30, z: -30 to -10) - around Grievance [17, -17] */}
       <DummyBuilding
         position={[25, 0, -25]}
         color="#95a5a6"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[25, 0, -10]}
         color="#34495e"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[10, 0, -25]}
         color="#16a085"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
 
       {/* INNER SW QUADRANT (x: -30 to -10, z: 10 to 30) - around Token [-17, 17] */}
       <DummyBuilding
         position={[-25, 0, 25]}
         color="#c0392b"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[-25, 0, 10]}
         color="#2980b9"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[-10, 0, 25]}
         color="#8e44ad"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
 
       {/* INNER SE QUADRANT (x: 10 to 30, z: 10 to 30) - around Farm [17, 17] - SPARSE */}
       <DummyBuilding
         position={[25, 0, 25]}
         color="#d35400"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
       <DummyBuilding
         position={[25, 0, 10]}
         color="#27ae60"
-        width={3.5}
-        height={5}
-        depth={3}
+        width={4.5}
+        height={7.5}
+        depth={4}
       />
       <DummyBuilding
         position={[10, 0, 25]}
         color="#f1c40f"
-        width={3}
-        height={4.5}
-        depth={3}
+        width={4}
+        height={7}
+        depth={4}
       />
 
       {/* Farm Expansion - Moved to far SE corner */}
