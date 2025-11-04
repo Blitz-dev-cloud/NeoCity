@@ -3,15 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useDeFiToken } from "@/hooks/useDeFiToken";
-import { useDeFiBank } from "@/hooks/useDeFiBank";
 import { useIdentityRegistry } from "@/hooks/useIdentityRegistry";
 import { useVoting } from "@/hooks/useVoting";
 import { formatEther } from "viem";
 import { FaSpinner } from "react-icons/fa";
-import { AnimatePresence, motion } from "framer-motion";
-import { BankPanel } from "@/components/modules/BankPanel";
+import { motion } from "framer-motion";
 import { TrafficControlPanel } from "@/components/TrafficControlPanel";
 
 // Dynamic import for 3D scene (client-side only)
@@ -30,54 +29,21 @@ const CityScene3D = dynamic(
   }
 );
 
-type BuildingType =
-  | "bank"
-  | "voting"
-  | "identity"
-  | "grievance"
-  | "healthcare"
-  | "supply"
-  | "traffic"
-  | "token";
-
 export default function Home() {
+  const router = useRouter();
   const { address, isConnected } = useAccount();
-  const [activeModal, setActiveModal] = useState<BuildingType | null>(null);
   const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [particles, setParticles] = useState<Array<{x: number, y: number, delay: number, duration: number}>>([]);
-  const [blobs, setBlobs] = useState<Array<{x: number, y: number, delay: number}>>([]);
 
   // Hooks (only used when connected)
   const { useBalance } = useDeFiToken();
-  const { useDeposit } = useDeFiBank();
   const { useIsVerified } = useIdentityRegistry();
   const { useProposalCount } = useVoting();
 
   // Data (only fetch when connected)
   const { data: balance } = useBalance(address);
-  const { data: bankDeposit } = useDeposit(address);
   const { data: isVerified } = useIsVerified(address);
   const { data: proposalCount } = useProposalCount();
-
-  // Generate random values on client side only
-  useEffect(() => {
-    setParticles(
-      Array.from({ length: 40 }, () => ({
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: Math.random() * 3 + 2,
-      }))
-    );
-    setBlobs(
-      Array.from({ length: 6 }, (_, i) => ({
-        x: Math.random() * 200 - 100,
-        y: Math.random() * 200 - 100,
-        delay: i * 0.5,
-      }))
-    );
-  }, []);
 
   // Loading animation timer
   useEffect(() => {
@@ -89,12 +55,24 @@ export default function Home() {
   }, []);
 
   const handleBuildingClick = (buildingId: string) => {
-    // Allow viewing all buildings, wallet optional for transactions
-    setActiveModal(buildingId as BuildingType);
-  };
+    // Navigate to respective dashboard pages
+    const routes: Record<string, string> = {
+      bank: "/banking",
+      cityhall: "/identity",
+      voting: "/voting",
+      identity: "/identity",
+      grievance: "/grievance",
+      hospital: "/healthcare",
+      farm: "/supply-chain",
+      shop: "/supply-chain",
+      traffic: "/traffic",
+      token: "/banking", // Token mint can go to banking for now
+    };
 
-  const handleCloseModal = () => {
-    setActiveModal(null);
+    const route = routes[buildingId];
+    if (route) {
+      router.push(route);
+    }
   };
 
   // Aurora Loading Animation
@@ -181,7 +159,7 @@ export default function Home() {
 
         {/* Animated Fluid Blobs */}
         <div className="absolute inset-0">
-          {blobs.map((blob, i) => (
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full mix-blend-screen filter blur-3xl"
@@ -200,8 +178,8 @@ export default function Home() {
                 ][i],
               }}
               animate={{
-                x: [0, blob.x, 0],
-                y: [0, blob.y, 0],
+                x: [0, Math.random() * 200 - 100, 0],
+                y: [0, Math.random() * 200 - 100, 0],
                 scale: [1, 1.3, 1],
                 opacity: [0.3, 0.6, 0.3],
               }}
@@ -209,7 +187,7 @@ export default function Home() {
                 duration: 8 + i * 2,
                 repeat: Infinity,
                 ease: "easeInOut",
-                delay: blob.delay,
+                delay: i * 0.5,
               }}
             />
           ))}
@@ -235,26 +213,26 @@ export default function Home() {
 
         {/* Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
-          {particles.map((particle, i) => (
+          {[...Array(40)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-1 h-1 bg-white rounded-full"
               style={{
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
                 boxShadow: "0 0 10px rgba(255,255,255,0.5)",
               }}
               animate={{
                 y: [0, -100, 0],
-                x: [0, particle.x * 0.3 - 15, 0],
+                x: [0, Math.random() * 30 - 15, 0],
                 opacity: [0, 1, 0],
                 scale: [0, 1.5, 0],
               }}
               transition={{
-                duration: particle.duration,
+                duration: Math.random() * 3 + 2,
                 repeat: Infinity,
                 ease: "easeOut",
-                delay: particle.delay,
+                delay: Math.random() * 2,
               }}
             />
           ))}
@@ -306,31 +284,109 @@ export default function Home() {
               }}
             >
               <div className="relative">
-                <motion.div
-                  className="text-9xl"
-                  animate={{
-                    rotate: [0, 360],
-                    filter: [
-                      "drop-shadow(0 0 20px rgba(59,130,246,0.8))",
-                      "drop-shadow(0 0 40px rgba(236,72,153,0.8))",
-                      "drop-shadow(0 0 20px rgba(59,130,246,0.8))",
-                    ],
-                  }}
-                  transition={{
-                    rotate: {
-                      duration: 20,
+                {/* 3D Building Grid Animation */}
+                <div className="relative w-32 h-32">
+                  {/* Rotating Grid */}
+                  <motion.div
+                    className="absolute inset-0"
+                    animate={{
+                      rotateY: [0, 360],
+                    }}
+                    transition={{
+                      duration: 8,
                       repeat: Infinity,
                       ease: "linear",
-                    },
-                    filter: {
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
-                  }}
-                >
-                  🏙️
-                </motion.div>
+                    }}
+                    style={{
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    {/* City Buildings - 3x3 grid */}
+                    {[...Array(9)].map((_, i) => {
+                      const col = i % 3;
+                      const height = 20 + Math.random() * 40;
+                      return (
+                        <motion.div
+                          key={i}
+                          className="absolute bg-gradient-to-t from-blue-500 to-purple-500 rounded-sm"
+                          style={{
+                            left: `${col * 33}%`,
+                            bottom: "0",
+                            width: "28%",
+                            height: `${height}%`,
+                            boxShadow: "0 0 20px rgba(59,130,246,0.5)",
+                          }}
+                          animate={{
+                            height: [
+                              `${height}%`,
+                              `${height + 20}%`,
+                              `${height}%`,
+                            ],
+                            boxShadow: [
+                              "0 0 20px rgba(59,130,246,0.5)",
+                              "0 0 40px rgba(236,72,153,0.8)",
+                              "0 0 20px rgba(59,130,246,0.5)",
+                            ],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.15,
+                          }}
+                        >
+                          {/* Building Windows */}
+                          <div className="absolute inset-0 flex flex-col justify-evenly px-0.5">
+                            {[...Array(Math.floor(height / 15))].map((_, w) => (
+                              <motion.div
+                                key={w}
+                                className="h-1 bg-cyan-300 rounded-sm"
+                                animate={{
+                                  opacity: [0.3, 1, 0.3],
+                                }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                  delay: w * 0.2,
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+
+                  {/* Circular Data Rings */}
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute inset-0 border-2 rounded-full"
+                      style={{
+                        borderColor: ["#3b82f6", "#8b5cf6", "#ec4899"][i],
+                        transform: `rotateX(75deg) scale(${1 + i * 0.2})`,
+                      }}
+                      animate={{
+                        rotate: [0, 360],
+                        opacity: [0.3, 0.7, 0.3],
+                      }}
+                      transition={{
+                        rotate: {
+                          duration: 4 + i * 2,
+                          repeat: Infinity,
+                          ease: "linear",
+                        },
+                        opacity: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: i * 0.3,
+                        },
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -532,7 +588,9 @@ export default function Home() {
               <div className="text-xs text-blue-300 mb-1">Wallet Balance</div>
               <div className="text-lg font-bold text-white">
                 💰{" "}
-                {balance ? `${formatEther(balance).slice(0, 8)} NEO` : "0 NEO"}
+                {balance && typeof balance === "bigint"
+                  ? `${formatEther(balance).slice(0, 8)} NEO`
+                  : "0 NEO"}
               </div>
             </div>
             <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-green-400/30 shadow-lg shadow-green-500/20">
@@ -574,36 +632,6 @@ export default function Home() {
 
       {/* Traffic Control Panel */}
       <TrafficControlPanel />
-
-      {/* Floating Panels */}
-      <AnimatePresence>
-        {activeModal === "bank" && (
-          <BankPanel
-            onClose={handleCloseModal}
-            balance={balance}
-            bankDeposit={bankDeposit}
-          />
-        )}
-
-        {activeModal && activeModal !== "bank" && (
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-            <div className="bg-gradient-to-br from-purple-900/90 to-pink-900/90 backdrop-blur-xl p-8 rounded-2xl border-2 border-purple-400/50 shadow-2xl">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Coming Soon
-              </h2>
-              <p className="text-purple-200 mb-6">
-                This module is under development
-              </p>
-              <button
-                onClick={handleCloseModal}
-                className="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { Building3D } from "./Building3D";
 import { Ground } from "./Ground";
 import { CityVehicles } from "./CityVehicles";
 import { TrafficLight, TrafficLightController } from "./TrafficLights";
+import { CityInfrastructure } from "./CityInfrastructure";
 
 interface CityScene3DProps {
   onBuildingClick: (buildingId: string) => void;
@@ -176,6 +177,9 @@ export function CityScene3D({
 
         {/* Ground */}
         <Ground />
+
+        {/* City Infrastructure - Street lights, benches, trees, etc. */}
+        <CityInfrastructure />
 
         {/* Traffic Light Controller */}
         <TrafficLightController />

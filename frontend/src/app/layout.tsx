@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+// Layout intentionally minimal — header/sidebar handled per-page in earlier versions
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
