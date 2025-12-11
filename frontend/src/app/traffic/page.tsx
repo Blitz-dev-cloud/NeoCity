@@ -424,8 +424,8 @@ export default function TrafficPage() {
     try {
       writeContract({
         address: contractAddresses.TrafficLog as `0x${string}`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: TrafficLogABI,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         functionName: "registerVehicle" as any,
         args: [licensePlate, vehicleType, isEmergencyVehicle],
       });
@@ -453,8 +453,8 @@ export default function TrafficPage() {
     try {
       writeContract({
         address: contractAddresses.TrafficLog as `0x${string}`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: TrafficLogABI,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         functionName: "updateVehicleLocation" as any,
         args: [plate, newLocation],
       });
