@@ -4,10 +4,7 @@ import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { TrafficLightManager } from "./TrafficLights";
-import { useAccount, useWriteContract } from "wagmi";
-import { TrafficLogABI } from "@/contracts/abis";
-import { contractAddresses } from "@/contracts/addresses";
-import { uploadJSONToIPFS } from "@/utils/pinata";
+import { useAccount } from "wagmi";
 
 interface Vehicle {
   id: string;

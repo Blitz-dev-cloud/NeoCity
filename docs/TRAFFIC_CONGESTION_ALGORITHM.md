@@ -12,12 +12,12 @@ NeoCity's intelligent traffic management system uses a **multi-factor adaptive a
 
 The system classifies traffic zones into four congestion levels:
 
-| Level | Description | Threshold Conditions |
-|-------|-------------|---------------------|
-| **Low** | Smooth flow | <40% utilization OR <30% with <5min congestion OR <70% peak ratio |
-| **Medium** | Moderate traffic | 40-69% utilization OR 30-59% with 5-10min congestion OR 70-84% peak ratio |
-| **High** | Heavy traffic | 70-89% utilization OR 60-79% with 10-15min congestion OR 85-94% peak ratio |
-| **Critical** | Gridlock | ≥90% utilization OR ≥80% with >15min congestion OR ≥95% peak ratio OR emergency vehicle present |
+| Level        | Description      | Threshold Conditions                                                                            |
+| ------------ | ---------------- | ----------------------------------------------------------------------------------------------- |
+| **Low**      | Smooth flow      | <40% utilization OR <30% with <5min congestion OR <70% peak ratio                               |
+| **Medium**   | Moderate traffic | 40-69% utilization OR 30-59% with 5-10min congestion OR 70-84% peak ratio                       |
+| **High**     | Heavy traffic    | 70-89% utilization OR 60-79% with 10-15min congestion OR 85-94% peak ratio                      |
+| **Critical** | Gridlock         | ≥90% utilization OR ≥80% with >15min congestion OR ≥95% peak ratio OR emergency vehicle present |
 
 #### Multi-Factor Determination
 
@@ -25,15 +25,15 @@ The system classifies traffic zones into four congestion levels:
 function _calculateCongestion(string memory zoneName) internal view returns (CongestionLevel) {
     // Factor 1: Current utilization
     uint256 utilizationPercent = (vehicleCount * 100) / capacity;
-    
+
     // Factor 2: Historical peak patterns
     uint256 peakRatio = (vehicleCount * 100) / historicalPeakCount;
-    
+
     // Factor 3: Congestion duration multiplier
     uint256 congestionDuration = block.timestamp - congestionStartTime;
     uint256 durationMultiplier = congestionDuration / 300; // +10% per 5 minutes
     uint256 adjustedUtilization = utilizationPercent + (durationMultiplier * 10);
-    
+
     // Apply decision tree with progressive thresholds
     if (hasEmergency) return Critical;
     if (adjustedUtilization >= 90 || (utilizationPercent >= 80 && congestionDuration > 900) || peakRatio >= 95)
@@ -42,12 +42,13 @@ function _calculateCongestion(string memory zoneName) internal view returns (Con
         return High;
     if (adjustedUtilization >= 40 || (utilizationPercent >= 30 && congestionDuration > 300) || peakRatio >= 70)
         return Medium;
-    
+
     return Low;
 }
 ```
 
 **Key Features:**
+
 - **Adaptive Thresholds**: Adjusts based on zone-specific historical peaks
 - **Time-Based Severity**: Longer congestion → higher severity (prevents stale assessments)
 - **Peak Ratio Analysis**: Compares current load to historical maximum for context
@@ -60,13 +61,13 @@ The system automatically adjusts green light duration based on five distinct pha
 
 #### Phase-Based Control Strategy
 
-| Phase | Condition | Green Light Duration | Purpose |
-|-------|-----------|---------------------|----------|
-| **Emergency** | Emergency vehicle present | 60s (max) | Pre-empt all traffic for emergency vehicles |
-| **Critical Recovery** | Critical congestion | 50-70s (scaled by duration) | Aggressive clearing of gridlock |
-| **High Management** | High congestion | 40-50s (scaled by utilization) | Progressive relief without over-correction |
-| **Medium Balancing** | Medium traffic | 30s | Standard balanced flow |
-| **Low Efficiency** | Low traffic | 20s (with gradual recovery) | Minimize wait times, prevent oscillation |
+| Phase                 | Condition                 | Green Light Duration           | Purpose                                     |
+| --------------------- | ------------------------- | ------------------------------ | ------------------------------------------- |
+| **Emergency**         | Emergency vehicle present | 60s (max)                      | Pre-empt all traffic for emergency vehicles |
+| **Critical Recovery** | Critical congestion       | 50-70s (scaled by duration)    | Aggressive clearing of gridlock             |
+| **High Management**   | High congestion           | 40-50s (scaled by utilization) | Progressive relief without over-correction  |
+| **Medium Balancing**  | Medium traffic            | 30s                            | Standard balanced flow                      |
+| **Low Efficiency**    | Low traffic               | 20s (with gradual recovery)    | Minimize wait times, prevent oscillation    |
 
 #### Implementation
 
@@ -75,7 +76,7 @@ function _autoAdjustTrafficLight(string memory zoneName) internal {
     CongestionLevel congestion = _calculateCongestion(zoneName);
     uint256 newDuration;
     uint256 currentDuration = zone.greenLightDuration;
-    
+
     // Phase 1: Emergency Response
     if (zone.hasEmergency) {
         newDuration = 60; // Maximum priority
@@ -101,22 +102,23 @@ function _autoAdjustTrafficLight(string memory zoneName) internal {
         // Gradual recovery to prevent oscillation
         newDuration = (currentDuration > 35) ? currentDuration - 5 : 20;
     }
-    
+
     // Smooth transition: Limit change rate to ±15s per update
     if (abs(newDuration - currentDuration) > 15) {
-        newDuration = (newDuration > currentDuration) 
-            ? currentDuration + 15 
+        newDuration = (newDuration > currentDuration)
+            ? currentDuration + 15
             : currentDuration - 15;
     }
-    
+
     // Apply bounds: 15s minimum, 90s maximum
     newDuration = clamp(newDuration, 15, 90);
-    
+
     zone.greenLightDuration = newDuration;
 }
 ```
 
 **Anti-Oscillation Features:**
+
 - **Gradual Recovery**: Decreases duration by 5s increments instead of jumping to 20s
 - **Smooth Transitions**: Maximum ±15s change per update cycle
 - **Hard Bounds**: 15-90s range prevents extremes
@@ -135,6 +137,7 @@ if (zone.vehicleCount > zone.historicalPeakCount) {
 ```
 
 **Use Cases:**
+
 - **Adaptive Thresholds**: Zones with higher historical peaks tolerate more vehicles before triggering high congestion
 - **Capacity Planning**: Infrastructure teams can identify zones consistently hitting peaks
 - **Anomaly Detection**: Sudden spikes above historical norms trigger faster response
@@ -159,6 +162,7 @@ if (congestion < High && zone.congestionStartTime > 0) {
 ```
 
 **Metrics Provided:**
+
 - `congestionStartTime`: When current congestion began
 - `totalCongestionTime`: Cumulative seconds spent congested (for reporting)
 - `emergencyResponseTime`: Time to clear emergency situations
@@ -183,6 +187,7 @@ if (!_checkForEmergencyVehicles(zoneName)) {
 ```
 
 **Priority Mechanisms:**
+
 - **Instant Critical Status**: Any zone with emergency vehicle is marked Critical
 - **60s Green Lights**: Maximum duration to clear path
 - **Response Time Tracking**: Measures how long emergencies take to clear
@@ -195,38 +200,38 @@ if (!_checkForEmergencyVehicles(zoneName)) {
 FUNCTION calculateCongestion(zone):
     IF zone has emergency vehicle:
         RETURN Critical
-    
+
     utilization = (vehicleCount / capacity) × 100
     peakRatio = (vehicleCount / historicalPeak) × 100
     congestionDuration = currentTime - congestionStartTime
-    
+
     # Progressive severity scaling
     durationBonus = (congestionDuration / 300 seconds) × 10%
     adjustedUtilization = utilization + durationBonus
-    
+
     # Multi-factor decision tree
-    IF adjustedUtilization ≥ 90 OR 
+    IF adjustedUtilization ≥ 90 OR
        (utilization ≥ 80 AND congestionDuration > 15min) OR
        peakRatio ≥ 95:
         RETURN Critical
-    
+
     ELSE IF adjustedUtilization ≥ 70 OR
             (utilization ≥ 60 AND congestionDuration > 10min) OR
             peakRatio ≥ 85:
         RETURN High
-    
+
     ELSE IF adjustedUtilization ≥ 40 OR
             (utilization ≥ 30 AND congestionDuration > 5min) OR
             peakRatio ≥ 70:
         RETURN Medium
-    
+
     ELSE:
         RETURN Low
 
 FUNCTION adjustTrafficLight(zone):
     congestion = calculateCongestion(zone)
     currentDuration = zone.greenLightDuration
-    
+
     # Phase-based control
     IF zone.hasEmergency:
         newDuration = 60
@@ -242,7 +247,7 @@ FUNCTION adjustTrafficLight(zone):
     ELSE:
         # Gradual recovery
         newDuration = (currentDuration > 35) ? currentDuration - 5 : 20
-    
+
     # Smooth transition
     changeAmount = abs(newDuration - currentDuration)
     IF changeAmount > 15:
@@ -250,10 +255,10 @@ FUNCTION adjustTrafficLight(zone):
             newDuration = currentDuration + 15
         ELSE:
             newDuration = currentDuration - 15
-    
+
     # Apply bounds
     newDuration = clamp(newDuration, 15, 90)
-    
+
     zone.greenLightDuration = newDuration
 ```
 
@@ -263,21 +268,21 @@ FUNCTION adjustTrafficLight(zone):
 
 ### Time Complexity
 
-| Operation | Complexity | Notes |
-|-----------|-----------|-------|
-| `calculateCongestion()` | O(1) | Constant-time arithmetic and comparisons |
-| `adjustTrafficLight()` | O(1) | Simple branching logic |
-| `updateVehicleLocation()` | O(n) | n = vehicles in zone (array search/remove) |
-| `getSystemHealthMetrics()` | O(z) | z = number of zones (iterates all zones) |
+| Operation                  | Complexity | Notes                                      |
+| -------------------------- | ---------- | ------------------------------------------ |
+| `calculateCongestion()`    | O(1)       | Constant-time arithmetic and comparisons   |
+| `adjustTrafficLight()`     | O(1)       | Simple branching logic                     |
+| `updateVehicleLocation()`  | O(n)       | n = vehicles in zone (array search/remove) |
+| `getSystemHealthMetrics()` | O(z)       | z = number of zones (iterates all zones)   |
 
 ### Space Complexity
 
-| Structure | Complexity | Notes |
-|-----------|-----------|-------|
-| Per Zone | O(1) | Fixed-size struct (10 fields) |
-| Per Vehicle | O(1) | Fixed-size struct (7 fields) |
-| Zone Vehicles List | O(v) | v = vehicles in zone |
-| Total System | O(z + v) | z zones + v vehicles |
+| Structure          | Complexity | Notes                         |
+| ------------------ | ---------- | ----------------------------- |
+| Per Zone           | O(1)       | Fixed-size struct (10 fields) |
+| Per Vehicle        | O(1)       | Fixed-size struct (7 fields)  |
+| Zone Vehicles List | O(v)       | v = vehicles in zone          |
+| Total System       | O(z + v)   | z zones + v vehicles          |
 
 ### Gas Optimization
 
@@ -386,6 +391,7 @@ npx hardhat test test/TrafficLog.test.js
 ```
 
 **Test Cases:**
+
 - Vehicle registration with all types
 - Location updates trigger congestion recalculation
 - Emergency vehicles set Critical status
@@ -413,6 +419,7 @@ npm run dev
 **Manual Test Scenarios:**
 
 #### Scenario A: Gradual Congestion Build-Up
+
 1. Navigate to `/traffic` → "My Vehicles" tab
 2. Register 3 vehicles (Car, Truck, Bus)
 3. Go to "Traffic Zones" tab → Note Downtown capacity (100)
@@ -426,6 +433,7 @@ npm run dev
    - **Expected**: Critical congestion (93%), 50-70s green light
 
 #### Scenario B: Emergency Response
+
 1. Register emergency vehicle (type: Emergency, checkbox: Emergency Vehicle)
 2. Update location to "Residential Area"
    - **Expected**: Zone instantly shows Critical, 60s green light, red "EMERGENCY VEHICLE IN ZONE" badge
@@ -433,6 +441,7 @@ npm run dev
    - **Expected**: Previous zone recovers congestion level, emergency zone now Critical
 
 #### Scenario C: Peak Hour Simulation
+
 1. Register 80 vehicles to "Highway 101" (capacity: 200)
    - **Expected**: Medium congestion (40%), 30s green
 2. Wait 6 minutes (or use block.timestamp manipulation)
@@ -440,6 +449,7 @@ npm run dev
    - **Expected**: Adjusted utilization increases → High congestion (duration bonus)
 
 #### Scenario D: Recovery Oscillation Check
+
 1. Create Critical congestion (90+ vehicles in 100-capacity zone)
    - **Expected**: 50-70s green light
 2. Remove 50 vehicles quickly
@@ -450,22 +460,28 @@ npm run dev
 ```javascript
 // scripts/stress-test-traffic.js
 const vehicles = 500;
-const zones = ["Downtown", "Highway 101", "Residential Area", "Industrial Zone"];
+const zones = [
+  "Downtown",
+  "Highway 101",
+  "Residential Area",
+  "Industrial Zone",
+];
 
 for (let i = 0; i < vehicles; i++) {
-    await trafficLog.registerVehicle(`PLATE-${i}`, 0, false);
-    const randomZone = zones[Math.floor(Math.random() * zones.length)];
-    await trafficLog.updateVehicleLocation(`PLATE-${i}`, randomZone);
+  await trafficLog.registerVehicle(`PLATE-${i}`, 0, false);
+  const randomZone = zones[Math.floor(Math.random() * zones.length)];
+  await trafficLog.updateVehicleLocation(`PLATE-${i}`, randomZone);
 }
 
 // Verify no zone exceeds capacity
 for (const zone of zones) {
-    const { vehicleCount, capacity } = await trafficLog.getTrafficZone(zone);
-    console.log(`${zone}: ${vehicleCount}/${capacity}`);
+  const { vehicleCount, capacity } = await trafficLog.getTrafficZone(zone);
+  console.log(`${zone}: ${vehicleCount}/${capacity}`);
 }
 ```
 
 **Expected Behavior:**
+
 - All transactions succeed
 - Congestion levels distributed across zones
 - No zone permanently stuck at Critical
@@ -477,14 +493,14 @@ for (const zone of zones) {
 
 ### Real-World Benchmarks
 
-| Operation | Gas Cost (avg) | Time Complexity |
-|-----------|---------------|-----------------|
-| Register Vehicle | ~80,000 gas | O(1) |
-| Update Location | ~120,000 gas | O(n) vehicles in zone |
-| Calculate Congestion | 0 gas (view) | O(1) |
-| Adjust Traffic Light | ~30,000 gas | O(1) |
-| Get Zone Metrics | 0 gas (view) | O(1) |
-| System Health | 0 gas (view) | O(z) zones |
+| Operation            | Gas Cost (avg) | Time Complexity       |
+| -------------------- | -------------- | --------------------- |
+| Register Vehicle     | ~80,000 gas    | O(1)                  |
+| Update Location      | ~120,000 gas   | O(n) vehicles in zone |
+| Calculate Congestion | 0 gas (view)   | O(1)                  |
+| Adjust Traffic Light | ~30,000 gas    | O(1)                  |
+| Get Zone Metrics     | 0 gas (view)   | O(1)                  |
+| System Health        | 0 gas (view)   | O(z) zones            |
 
 ### Scalability Limits
 
@@ -497,16 +513,19 @@ for (const zone of zones) {
 ## Future Enhancements
 
 1. **Machine Learning Integration**
+
    - Upload historical congestion data to IPFS
    - Train ML model to predict congestion 15-30 minutes ahead
    - Proactive signal adjustments before congestion forms
 
 2. **Multi-Zone Route Optimization**
+
    - Dijkstra's algorithm for shortest path considering congestion
    - Real-time route suggestions to drivers
    - Load balancing across parallel routes
 
 3. **Dynamic Capacity Adjustment**
+
    - Adjust zone capacity based on time of day (e.g., school zones)
    - Weather-based capacity reduction (rain/snow)
    - Construction/event temporary reductions
@@ -538,6 +557,6 @@ NeoCity's traffic congestion algorithm provides:
 ✅ **Emergency vehicle priority** with instant Critical status  
 ✅ **Anti-oscillation mechanisms** for smooth recovery  
 ✅ **Historical tracking** for capacity planning  
-✅ **Real-time blockchain transparency** for accountability  
+✅ **Real-time blockchain transparency** for accountability
 
 The system balances **responsiveness** (rapid reaction to emergencies) with **stability** (gradual recovery prevents signal flapping), making it suitable for real-world smart city deployments.

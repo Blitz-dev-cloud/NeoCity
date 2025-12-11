@@ -84,11 +84,11 @@ export class TrafficLightManager {
         // - Horizontal phase: NE & SE (east) + NW & SW (west) control horizontal traffic
 
         // Determine which lights should be active based on phase
-        const isNorthSouthLight =
-          id.endsWith("-ne") ||
-          id.endsWith("-nw") ||
-          id.endsWith("-se") ||
-          id.endsWith("-sw");
+        // const isNorthSouthLight =
+        //   id.endsWith("-ne") ||
+        //   id.endsWith("-nw") ||
+        //   id.endsWith("-se") ||
+        //   id.endsWith("-sw");
 
         // In vertical phase: NE/NW pair and SE/SW pair alternate
         // In horizontal phase: NE/SE pair and NW/SW pair alternate
