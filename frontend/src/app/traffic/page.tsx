@@ -193,6 +193,7 @@ export default function TrafficPage() {
           const zoneData = (await readContract(config, {
             address: contractAddresses.TrafficLog as `0x${string}`,
             abi: TrafficLogABI,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             functionName: "getTrafficZone" as any,
             args: [zoneName],
           })) as [bigint, bigint, bigint, bigint, boolean, number];
@@ -266,7 +267,8 @@ export default function TrafficPage() {
             operator,
             notes,
             predictionData,
-            isEmergency,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            _isEmergency,
           ] = logData;
 
           const congestionMap: Record<number, string> = {
@@ -422,6 +424,7 @@ export default function TrafficPage() {
     try {
       writeContract({
         address: contractAddresses.TrafficLog as `0x${string}`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: TrafficLogABI,
         functionName: "registerVehicle" as any,
         args: [licensePlate, vehicleType, isEmergencyVehicle],
@@ -450,6 +453,7 @@ export default function TrafficPage() {
     try {
       writeContract({
         address: contractAddresses.TrafficLog as `0x${string}`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abi: TrafficLogABI,
         functionName: "updateVehicleLocation" as any,
         args: [plate, newLocation],

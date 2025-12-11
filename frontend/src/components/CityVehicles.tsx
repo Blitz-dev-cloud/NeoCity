@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { TrafficLightManager } from "./TrafficLights";
-import { useAccount } from "wagmi";
 
 interface Vehicle {
   id: string;

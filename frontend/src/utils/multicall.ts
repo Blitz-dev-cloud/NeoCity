@@ -5,8 +5,8 @@ import { type Abi } from "viem"; // Added to fix the 'abi: any' error
 /**
  * Helper to batch multiple contract reads efficiently
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function batchReadContracts<T>(contracts: any[]): Promise<T[]> {
-  // eslint-disable-line @typescript-eslint/no-explicit-any
   try {
     const results = await readContracts(config, {
       contracts,
@@ -24,7 +24,7 @@ export async function batchReadContracts<T>(contracts: any[]): Promise<T[]> {
  */
 export async function fetchItemsByRange(
   address: `0x${string}`,
-  abi: Abi, // eslint-disable-line @typescript-eslint/no-explicit-any
+  abi: Abi,
   functionName: string,
   startId: number,
   endId: number
