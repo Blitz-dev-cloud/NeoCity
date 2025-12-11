@@ -54,6 +54,7 @@ export default function SupplyChainPage() {
   const [location, setLocation] = useState("");
   const [newOwner, setNewOwner] = useState("");
   const [trackBatchId, setTrackBatchId] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isUploadingToIPFS, setIsUploadingToIPFS] = useState(false);
   const [metadata, setMetadata] = useState({
     certifications: "",

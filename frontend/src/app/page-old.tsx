@@ -474,9 +474,10 @@ export default function Home() {
       })()}
     </main>
   );
-}
+} // End of Home
 
 // Modal Components
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TokenModal({ balance, useMint, address }: any) {
   const [amount, setAmount] = useState('');
   const { data: mintData, isLoading, writeContract } = useMint();

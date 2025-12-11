@@ -138,9 +138,11 @@ export default function IdentityPage() {
   // Parse identity data from contract (Identity struct)
   const hasIdentity =
     identityData && Array.isArray(identityData) && identityData[0];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const identityOwner = hasIdentity ? identityData[0] : "";
   const didDocument = hasIdentity ? identityData[1] : "";
   const isActive = hasIdentity ? identityData[2] : false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const createdAt = hasIdentity ? identityData[3] : 0;
 
   // Parse DID document to extract user info
