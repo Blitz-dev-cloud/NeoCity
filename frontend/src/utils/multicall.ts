@@ -1,14 +1,17 @@
 import { readContracts } from "@wagmi/core";
 import { config } from "@/config/wagmi";
+import { type Abi } from "viem"; // Added to fix the 'abi: any' error
 
 /**
  * Helper to batch multiple contract reads efficiently
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function batchReadContracts<T>(contracts: any[]): Promise<T[]> {
   try {
     const results = await readContracts(config, {
       contracts,
     });
+    // Wagmi results often include a status, here we map to the raw result
     return results.map((result) => result.result as T);
   } catch (error) {
     console.error("Batch read error:", error);
@@ -21,7 +24,7 @@ export async function batchReadContracts<T>(contracts: any[]): Promise<T[]> {
  */
 export async function fetchItemsByRange(
   address: `0x${string}`,
-  abi: any,
+  abi: Abi, // Fixed: Changed 'any' to 'Abi'
   functionName: string,
   startId: number,
   endId: number
