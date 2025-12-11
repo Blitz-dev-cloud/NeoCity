@@ -18,9 +18,12 @@ import {
   FaUserTie,
   FaExclamationTriangle,
   FaArrowLeft,
+  FaFileUpload,
+  FaEye,
 } from "react-icons/fa";
 import { GrievanceABI } from "@/contracts/abis";
-import { CONTRACTS } from "@/contracts/addresses";
+import { contractAddresses } from "@/contracts/addresses";
+import { uploadJSONToIPFS, getIPFSUrl, fetchFromIPFS } from "@/utils/pinata";
 
 enum GrievanceStatus {
   Filed = 0,
@@ -54,11 +57,23 @@ export default function GrievancePage() {
   const [did, setDid] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("infrastructure");
   const [ipfsHash, setIpfsHash] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [isUploadingToIPFS, setIsUploadingToIPFS] = useState(false);
+  const [viewingGrievance, setViewingGrievance] = useState<{
+    ipfsHash: string;
+    title: string;
+    data?: Record<string, unknown>;
+  } | null>(null);
+
+  // State for fetched grievances
+  const [grievances, setGrievances] = useState<any[]>([]);
+  const [isLoadingGrievances, setIsLoadingGrievances] = useState(false);
 
   // Read contract data
   const { data: grievanceCount } = useReadContract({
-    address: CONTRACTS.Grievance as `0x${string}`,
+    address: contractAddresses.Grievance as `0x${string}`,
     abi: GrievanceABI,
     functionName: "grievanceCount",
   });
@@ -69,10 +84,104 @@ export default function GrievancePage() {
     hash,
   });
 
+  // Auto-set DID when wallet connects
+  useEffect(() => {
+    if (isConnected && address) {
+      setDid(`did:neocity:${address.toLowerCase()}`);
+    }
+  }, [isConnected, address]);
+
+  // Fetch grievances when count changes
+  useEffect(() => {
+    const fetchGrievances = async () => {
+      if (!grievanceCount || Number(grievanceCount) === 0) {
+        setGrievances([]);
+        return;
+      }
+
+      setIsLoadingGrievances(true);
+      const count = Number(grievanceCount);
+      const fetchedGrievances: any[] = [];
+
+      for (let i = 1; i <= Math.min(count, 20); i++) {
+        try {
+          const { readContract } = await import("wagmi/actions");
+          const { config } = await import("@/config/wagmi");
+
+          const grievanceData = (await readContract(config, {
+            address: contractAddresses.Grievance as `0x${string}`,
+            abi: GrievanceABI,
+            functionName: "getGrievance",
+            args: [BigInt(i)],
+          })) as [
+            bigint,
+            string,
+            string,
+            string,
+            string,
+            number,
+            string,
+            bigint
+          ];
+
+          const [
+            id,
+            didValue,
+            titleValue,
+            evidenceHash,
+            resolver,
+            statusNum,
+            resolution,
+            timestamp,
+          ] = grievanceData;
+
+          const statusMap: Record<number, string> = {
+            0: "Filed",
+            1: "Under Review",
+            2: "Resolved",
+          };
+
+          fetchedGrievances.push({
+            id: Number(id),
+            did: didValue,
+            title: titleValue,
+            evidenceHash,
+            resolver,
+            status: statusMap[statusNum] || "Filed",
+            resolution,
+            timestamp: Number(timestamp) * 1000,
+          });
+        } catch (error) {
+          console.error(`Error fetching grievance ${i}:`, error);
+        }
+      }
+
+      setGrievances(fetchedGrievances);
+      setIsLoadingGrievances(false);
+    };
+
+    fetchGrievances();
+  }, [grievanceCount, isSuccess]);
+
   const showNotification = (message: string, type: "success" | "error") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 5000);
   };
+
+  // Show success notification after blockchain confirmation
+  useEffect(() => {
+    if (isSuccess) {
+      showNotification(
+        "Grievance filed successfully on blockchain!",
+        "success"
+      );
+      setDid("");
+      setTitle("");
+      setDescription("");
+      setCategory("infrastructure");
+      setAttachments([]);
+    }
+  }, [isSuccess]);
 
   const handleFileGrievance = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,19 +191,76 @@ export default function GrievancePage() {
       return;
     }
 
-    // Simulate IPFS upload (in production, upload description to IPFS)
-    const mockIpfsHash = `Qm${Math.random().toString(36).substring(2, 15)}`;
+    setIsUploadingToIPFS(true);
 
     try {
+      // Upload grievance details to IPFS
+      const grievanceData = {
+        title,
+        description,
+        category,
+        did,
+        timestamp: Date.now(),
+        hasAttachments: attachments.length > 0,
+      };
+
+      const ipfsHash = await uploadJSONToIPFS(grievanceData, {
+        name: `grievance-${title.replace(/\s+/g, "-")}-${Date.now()}`,
+        keyvalues: {
+          type: "grievance",
+          category,
+          did,
+        },
+      });
+
+      // REMOVED premature success notification
+      setIsUploadingToIPFS(false);
+
+      // Store on blockchain - success will be shown via useEffect
       writeContract({
-        address: CONTRACTS.Grievance as `0x${string}`,
+        address: contractAddresses.Grievance as `0x${string}`,
         abi: GrievanceABI,
         functionName: "fileGrievance",
-        args: [did, title, mockIpfsHash],
+        args: [did, title, ipfsHash],
       });
     } catch (error) {
-      showNotification("Error filing grievance", "error");
+      setIsUploadingToIPFS(false);
+      showNotification(
+        error instanceof Error ? error.message : "Error uploading to IPFS",
+        "error"
+      );
       console.error(error);
+    }
+  };
+
+  const handleViewGrievance = async (ipfsHash: string, title: string) => {
+    try {
+      showNotification("Fetching grievance from IPFS...", "success");
+      const data = (await fetchFromIPFS(ipfsHash)) as Record<string, unknown>;
+
+      setViewingGrievance({
+        ipfsHash,
+        title,
+        data,
+      });
+    } catch {
+      showNotification(
+        "Error fetching grievance. Opening IPFS URL...",
+        "error"
+      );
+      window.open(getIPFSUrl(ipfsHash), "_blank");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      // Limit to 5 files, 5MB each
+      const validFiles = files.filter((file) => file.size <= 5 * 1024 * 1024);
+      if (validFiles.length < files.length) {
+        showNotification("Some files were skipped (max 5MB each)", "error");
+      }
+      setAttachments((prev) => [...prev, ...validFiles].slice(0, 5));
     }
   };
 
@@ -104,6 +270,7 @@ export default function GrievancePage() {
       setTitle("");
       setDescription("");
       setIpfsHash("");
+      setAttachments([]);
     }
   }, [isSuccess]);
 
@@ -383,60 +550,103 @@ export default function GrievancePage() {
                 My Grievances
               </h2>
 
-              {/* Mock grievance cards */}
-              {[1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        {i === 1
-                          ? "Street Light Not Working"
-                          : "Noise Complaint"}
-                      </h3>
-                      <p className="text-orange-200 text-sm mb-3">
-                        {i === 1
-                          ? "The street light at Main St & 5th Ave has been out for 3 days"
-                          : "Construction noise exceeding permitted hours"}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs">
-                        <span className="text-orange-300">
-                          Filed:{" "}
-                          {new Date(
-                            Date.now() - i * 86400000
-                          ).toLocaleDateString()}
-                        </span>
-                        <span className="text-orange-300">
-                          Case #{1000 + i}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        i === 1
-                          ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
-                          : "bg-green-500/20 text-green-300 border border-green-500/30"
-                      }`}
-                    >
-                      {i === 1 ? "Under Review" : "Resolved"}
-                    </div>
+              {isLoadingGrievances ? (
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-12 border border-orange-500/30">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-orange-200 text-center">
+                      Loading your grievances...
+                    </p>
                   </div>
+                </div>
+              ) : (
+                <>
+                  {grievances.filter(
+                    (g) =>
+                      g.did === did ||
+                      g.did === `did:neocity:${address?.toLowerCase()}`
+                  ).length > 0 ? (
+                    grievances
+                      .filter(
+                        (g) =>
+                          g.did === did ||
+                          g.did === `did:neocity:${address?.toLowerCase()}`
+                      )
+                      .map((grievance, i) => (
+                        <motion.div
+                          key={grievance.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-white mb-2">
+                                {grievance.title}
+                              </h3>
+                              <div className="flex items-center gap-4 text-xs mb-3">
+                                <span className="text-orange-300">
+                                  Filed:{" "}
+                                  {new Date(
+                                    grievance.timestamp
+                                  ).toLocaleDateString()}
+                                </span>
+                                <span className="text-orange-300">
+                                  Case #{grievance.id}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  handleViewGrievance(
+                                    grievance.evidenceHash,
+                                    grievance.title
+                                  )
+                                }
+                                className="text-orange-400 hover:text-orange-300 text-sm flex items-center gap-2 transition-colors"
+                              >
+                                <FaEye /> View Details on IPFS
+                              </button>
+                            </div>
+                            <div
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                grievance.status === "Resolved"
+                                  ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                                  : grievance.status === "Under Review"
+                                  ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                                  : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                              }`}
+                            >
+                              {grievance.status}
+                            </div>
+                          </div>
 
-                  {i === 1 && (
-                    <div className="bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
-                      <p className="text-orange-200 text-sm flex items-center gap-2">
-                        <FaUserTie className="text-orange-400" />
-                        <span>Assigned to: Resolver #42 (John Doe)</span>
+                          {grievance.resolver !==
+                            "0x0000000000000000000000000000000000000000" && (
+                            <div className="bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
+                              <p className="text-orange-200 text-sm flex items-center gap-2">
+                                <FaUserTie className="text-orange-400" />
+                                <span>
+                                  Assigned to: {grievance.resolver.slice(0, 10)}
+                                  ...
+                                </span>
+                              </p>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))
+                  ) : (
+                    <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-12 border border-orange-500/30 text-center">
+                      <FaFileAlt className="w-16 h-16 text-orange-400/50 mx-auto mb-4" />
+                      <p className="text-orange-200">No grievances filed yet</p>
+                      <p className="text-orange-300/70 text-sm mt-2">
+                        Click on &quot;File Grievance&quot; to submit your first
+                        case
                       </p>
                     </div>
                   )}
-                </motion.div>
-              ))}
+                </>
+              )}
             </div>
           )}
 
@@ -447,13 +657,95 @@ export default function GrievancePage() {
                 All Public Grievances
               </h2>
 
-              <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/30">
-                <p className="text-orange-200 text-center">
-                  {grievanceCount && Number(grievanceCount) > 0
-                    ? `${grievanceCount.toString()} total grievances filed`
-                    : "No grievances filed yet"}
-                </p>
-              </div>
+              {isLoadingGrievances ? (
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-12 border border-orange-500/30">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-orange-200 text-center">
+                      Loading grievances from blockchain...
+                    </p>
+                  </div>
+                </div>
+              ) : grievances.length > 0 ? (
+                <div className="space-y-4">
+                  {grievances.map((grievance, i) => (
+                    <motion.div
+                      key={grievance.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-white">
+                              {grievance.title}
+                            </h3>
+                            <div
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                grievance.status === "Resolved"
+                                  ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                                  : grievance.status === "Under Review"
+                                  ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                                  : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                              }`}
+                            >
+                              {grievance.status}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs mb-3">
+                            <span className="text-orange-300">
+                              Filed:{" "}
+                              {new Date(
+                                grievance.timestamp
+                              ).toLocaleDateString()}
+                            </span>
+                            <span className="text-orange-300">
+                              Case #{grievance.id}
+                            </span>
+                            <span className="text-orange-300/70">
+                              DID: {grievance.did.slice(0, 20)}...
+                            </span>
+                          </div>
+                          <button
+                            onClick={() =>
+                              handleViewGrievance(
+                                grievance.evidenceHash,
+                                grievance.title
+                              )
+                            }
+                            className="text-orange-400 hover:text-orange-300 text-sm flex items-center gap-2 transition-colors"
+                          >
+                            <FaEye /> View Details on IPFS
+                          </button>
+                        </div>
+                      </div>
+                      {grievance.resolver &&
+                        grievance.resolver !==
+                          "0x0000000000000000000000000000000000000000" && (
+                          <div className="bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
+                            <p className="text-orange-200 text-sm flex items-center gap-2">
+                              <FaUserTie className="text-orange-400" />
+                              <span>
+                                Assigned to: {grievance.resolver.slice(0, 10)}
+                                ...
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/30">
+                  <p className="text-orange-200 text-center">
+                    {grievanceCount && Number(grievanceCount) > 0
+                      ? `${grievanceCount.toString()} total grievances filed`
+                      : "No grievances filed yet"}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </motion.div>

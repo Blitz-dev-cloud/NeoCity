@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
 import { useRouter } from "next/navigation";
 import { useVoting } from "@/hooks/useVoting";
+import { useIdentityRegistry } from "@/hooks/useIdentityRegistry";
+import { contractAddresses } from "@/contracts/addresses";
+import { VotingABI } from "@/contracts/abis";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaVoteYea,
@@ -100,9 +103,14 @@ const StatsCard = ({
 );
 
 export default function VotingPage() {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const { data: blockNumber } = useBlockNumber({ watch: true });
   const router = useRouter();
+
+  // Get user's DID
+  const { useUserDIDs } = useIdentityRegistry();
+  const { data: userDID } = useUserDIDs(address);
+  const userDid = userDID && typeof userDID === "string" ? userDID : "";
 
   const [activeTab, setActiveTab] = useState<
     "proposals" | "create" | "history"
@@ -115,45 +123,120 @@ export default function VotingPage() {
   // Create Proposal Form
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [duration, setDuration] = useState("7");
 
-  const { useProposalCount, createProposal, vote, isPending } = useVoting();
+  const {
+    useProposalCount,
+    createProposal,
+    vote,
+    isPending,
+    isConfirming,
+    isSuccess,
+  } = useVoting();
   const { data: proposalCount } = useProposalCount();
 
-  // Mock data for proposals (in real app, fetch from contract)
-  const proposals = [
-    {
-      id: 1,
-      title: "Upgrade City Infrastructure",
-      description:
-        "Allocate 100,000 NEO for smart infrastructure improvements including traffic management and public utilities.",
-      proposer: "0x1234...5678",
-      startTime: Date.now() - 2 * 24 * 60 * 60 * 1000,
-      endTime: Date.now() + 5 * 24 * 60 * 60 * 1000,
-      yesVotes: 15420,
-      noVotes: 8340,
-      status: "active",
-      hasVoted: false,
-    },
-    {
-      id: 2,
-      title: "New Public Healthcare Initiative",
-      description:
-        "Establish decentralized healthcare records system with 50,000 NEO funding.",
-      proposer: "0xabcd...efgh",
-      startTime: Date.now() - 1 * 24 * 60 * 60 * 1000,
-      endTime: Date.now() + 6 * 24 * 60 * 60 * 1000,
-      yesVotes: 12100,
-      noVotes: 5230,
-      status: "active",
-      hasVoted: true,
-    },
-  ];
+  // State to store fetched proposals
+  interface Proposal {
+    id: number;
+    title: string;
+    description: string;
+    proposer: string;
+    startTime: number;
+    endTime: number;
+    yesVotes: number;
+    noVotes: number;
+    status: string;
+    hasVoted: boolean;
+  }
 
-  const totalProposals = Number(proposalCount) || proposals.length;
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [isLoadingProposals, setIsLoadingProposals] = useState(false);
+
+  // Fetch proposals from blockchain when proposalCount changes
+  useEffect(() => {
+    const fetchProposals = async () => {
+      if (!proposalCount || Number(proposalCount) === 0) {
+        setProposals([]);
+        return;
+      }
+
+      setIsLoadingProposals(true);
+      const count = Number(proposalCount);
+      const fetchedProposals: Proposal[] = [];
+
+      // Fetch proposals using readContract (in production, use multicall for efficiency)
+      for (let i = 1; i <= Math.min(count, 20); i++) {
+        try {
+          const { readContract } = await import("wagmi/actions");
+          const { config } = await import("@/config/wagmi");
+
+          const proposalData = (await readContract(config, {
+            address: contractAddresses.Voting,
+            abi: VotingABI,
+            functionName: "getProposal",
+            args: [BigInt(i)],
+          })) as [
+            bigint,
+            string,
+            string,
+            string,
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+            number
+          ];
+
+          const [
+            id,
+            title,
+            description,
+            proposer,
+            startTime,
+            endTime,
+            yesVotes,
+            noVotes,
+            statusNum,
+          ] = proposalData;
+
+          const statusMap: Record<number, string> = {
+            0: "pending",
+            1: "active",
+            2: "passed",
+            3: "failed",
+            4: "executed",
+          };
+
+          fetchedProposals.push({
+            id: Number(id),
+            title: title || `Proposal #${i}`,
+            description: description || "No description provided",
+            proposer: proposer,
+            startTime: Number(startTime) * 1000,
+            endTime: Number(endTime) * 1000,
+            yesVotes: Number(yesVotes),
+            noVotes: Number(noVotes),
+            status: statusMap[statusNum] || "pending",
+            hasVoted: false,
+          });
+        } catch (error) {
+          console.error(`Error fetching proposal ${i}:`, error);
+        }
+      }
+
+      setProposals(fetchedProposals);
+      setIsLoadingProposals(false);
+    };
+
+    fetchProposals();
+  }, [proposalCount, isSuccess]);
+
+  const totalProposals = proposals.length;
   const activeProposals = proposals.filter((p) => p.status === "active").length;
   const userVotes = proposals.filter((p) => p.hasVoted).length;
-  const participationRate = ((userVotes / totalProposals) * 100).toFixed(1);
+  const participationRate =
+    totalProposals > 0
+      ? ((userVotes / totalProposals) * 100).toFixed(1)
+      : "0.0";
 
   // Notification helper
   const showNotification = (
@@ -163,17 +246,28 @@ export default function VotingPage() {
     setNotification({ message, type });
   };
 
-  // Handle Create Proposal
-  const handleCreateProposal = async () => {
-    if (!title || !description || !duration || !isConnected) return;
-    try {
-      const durationInSeconds = BigInt(parseInt(duration) * 24 * 60 * 60);
-      await createProposal(description, durationInSeconds);
+  // Show success notification after blockchain confirmation
+  useEffect(() => {
+    if (isSuccess) {
       showNotification("Proposal created successfully!", "success");
       setTitle("");
       setDescription("");
-      setDuration("7");
       setActiveTab("proposals");
+    }
+  }, [isSuccess]);
+
+  // Handle Create Proposal
+  const handleCreateProposal = async () => {
+    if (!title || !description || !userDid || !isConnected) {
+      showNotification(
+        "Please fill in all fields and ensure you have a registered DID.",
+        "error"
+      );
+      return;
+    }
+    try {
+      createProposal(userDid, title, description);
+      // Success will be shown via useEffect watching isSuccess
     } catch (error) {
       console.error("Failed to create proposal:", error);
       showNotification("Failed to create proposal. Please try again.", "error");
@@ -184,11 +278,8 @@ export default function VotingPage() {
   const handleVote = async (proposalId: number, support: boolean) => {
     if (!isConnected) return;
     try {
-      await vote(BigInt(proposalId), support);
-      showNotification(
-        `Vote ${support ? "for" : "against"} submitted successfully!`,
-        "success"
-      );
+      vote(BigInt(proposalId), support);
+      // Success will be shown via useEffect watching isSuccess
     } catch (error) {
       console.error("Failed to vote:", error);
       showNotification("Failed to submit vote. Please try again.", "error");
@@ -361,7 +452,16 @@ export default function VotingPage() {
               exit={{ opacity: 0, x: 20 }}
               className="space-y-6"
             >
-              {proposals.length > 0 ? (
+              {isLoadingProposals ? (
+                <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-700 rounded-2xl p-12 backdrop-blur-xl">
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-gray-300 text-center">
+                      Loading proposals from blockchain...
+                    </p>
+                  </div>
+                </div>
+              ) : proposals.length > 0 ? (
                 proposals.map((proposal) => {
                   const totalVotes = proposal.yesVotes + proposal.noVotes;
                   const yesPercent =
@@ -579,29 +679,47 @@ export default function VotingPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2 font-medium">
-                      Voting Duration (days)
-                    </label>
-                    <input
-                      type="number"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      min="1"
-                      max="365"
-                      className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                    />
-                  </div>
+                  {/* DID Display */}
+                  {userDid && (
+                    <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+                      <label className="block text-sm text-gray-400 mb-2 font-medium">
+                        Your DID
+                      </label>
+                      <div className="text-sm text-gray-300 font-mono break-all">
+                        {userDid}
+                      </div>
+                    </div>
+                  )}
+
+                  {!userDid && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <FaInfoCircle className="text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-yellow-200 text-sm">
+                          ⚠️ You need a registered DID to create proposals.
+                          Please register your identity first.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     onClick={handleCreateProposal}
-                    disabled={!title || !description || !duration || isPending}
+                    disabled={
+                      !title ||
+                      !description ||
+                      !userDid ||
+                      isPending ||
+                      isConfirming
+                    }
                     className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {isPending ? (
+                    {isPending || isConfirming ? (
                       <>
                         <FaSpinner className="animate-spin" />
-                        Creating Proposal...
+                        {isPending
+                          ? "Sending to Blockchain..."
+                          : "Confirming Transaction..."}
                       </>
                     ) : (
                       <>

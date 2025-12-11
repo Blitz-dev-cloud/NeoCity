@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, ElementType } from "react"; // Added ElementType import
 import {
   FaUniversity,
   FaVoteYea,
@@ -11,12 +11,16 @@ import {
   FaTruck,
   FaTrafficLight,
   FaCoins,
+  FaFaucet,
+  FaLock,
+  FaUserShield,
+  FaUserMd,
 } from "react-icons/fa";
 
 interface CityBuilding {
   id: string;
   name: string;
-  icon: any;
+  icon: ElementType; // Fixed: Changed 'any' to 'ElementType'
   route: string;
   position: { x: number; y: number };
   gradient: string;
@@ -80,6 +84,26 @@ export function CityMap({ stats }: CityMapProps) {
       stat: stats.treasury,
     },
     {
+      id: "faucet",
+      name: "Token Faucet",
+      icon: FaFaucet,
+      route: "/faucet",
+      position: { x: 24, y: 35 },
+      gradient: "from-teal-500 via-teal-600 to-teal-700",
+      description: "Get Free NEO Tokens",
+      status: "1000 NEO/24h",
+    },
+    {
+      id: "vault",
+      name: "Token Vault",
+      icon: FaLock,
+      route: "/vault",
+      position: { x: 52, y: 35 },
+      gradient: "from-yellow-500 via-yellow-600 to-yellow-700",
+      description: "Secure Token Minting",
+      status: "Owner Only",
+    },
+    {
       id: "grievance",
       name: "Citizen Services",
       icon: FaExclamationTriangle,
@@ -97,7 +121,25 @@ export function CityMap({ stats }: CityMapProps) {
       position: { x: 66, y: 50 },
       gradient: "from-red-500 via-red-600 to-red-700",
       description: "Electronic Health Records",
-      status: "Coming Soon",
+    },
+    {
+      id: "doctor",
+      name: "Doctor Portal",
+      icon: FaUserMd,
+      route: "/doctor",
+      position: { x: 80, y: 50 },
+      gradient: "from-pink-500 via-pink-600 to-pink-700",
+      description: "Healthcare Provider Dashboard",
+    },
+    {
+      id: "admin",
+      name: "Admin Center",
+      icon: FaUserShield,
+      route: "/admin",
+      position: { x: 10, y: 80 },
+      gradient: "from-purple-500 via-indigo-600 to-purple-700",
+      description: "System Administration",
+      status: "Admin Only",
     },
     {
       id: "supply",
@@ -107,7 +149,6 @@ export function CityMap({ stats }: CityMapProps) {
       position: { x: 24, y: 80 },
       gradient: "from-yellow-500 via-yellow-600 to-yellow-700",
       description: "Supply Chain Tracking",
-      status: "Coming Soon",
     },
     {
       id: "traffic",
@@ -117,7 +158,6 @@ export function CityMap({ stats }: CityMapProps) {
       position: { x: 52, y: 80 },
       gradient: "from-cyan-500 via-cyan-600 to-cyan-700",
       description: "Traffic Management",
-      status: "Coming Soon",
     },
   ];
 

@@ -16,6 +16,7 @@ interface Building3DProps {
   onClick: () => void;
   onHover: () => void;
   onUnhover: () => void;
+  userDID?: string; // Optional DID to display in tooltip
 }
 
 export function Building3D({
@@ -28,6 +29,7 @@ export function Building3D({
   onClick,
   onHover,
   onUnhover,
+  userDID,
 }: Building3DProps) {
   const meshRef = useRef<THREE.Group>(null);
 
@@ -873,8 +875,8 @@ export function Building3D({
           </group>
         );
 
-      case "token":
-        // Crypto Token Mint - Futuristic Vault - ENHANCED - SCALED UP
+      case "vault":
+        // Crypto Token Vault - Futuristic Vault - ENHANCED - SCALED UP
         return (
           <group scale={1.8}>
             {/* Base platform */}
@@ -1031,6 +1033,516 @@ export function Building3D({
           </group>
         );
 
+      case "voting":
+        // Modern Voting Hall - Democratic Building with Dome
+        return (
+          <group scale={1.8}>
+            {/* Base foundation */}
+            <Box args={[4, 0.8, 4]} position={[0, 0.4, 0]} castShadow>
+              <meshStandardMaterial
+                color="#4c1d95"
+                metalness={0.6}
+                roughness={0.4}
+              />
+            </Box>
+
+            {/* Main building body */}
+            <Box
+              args={[3.5, 5, 3.5]}
+              position={[0, 3.4, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color="#7c3aed"
+                metalness={0.7}
+                roughness={0.3}
+                emissive={color}
+                emissiveIntensity={isHovered ? 0.5 : 0.3}
+              />
+            </Box>
+
+            {/* Decorative columns - 4 corners */}
+            {[
+              [-1.5, 0, 1.5],
+              [1.5, 0, 1.5],
+              [-1.5, 0, -1.5],
+              [1.5, 0, -1.5],
+            ].map((pos, i) => (
+              <Cylinder
+                key={i}
+                args={[0.3, 0.35, 5.5, 16]}
+                position={[pos[0], 3.6, pos[2]]}
+                castShadow
+              >
+                <meshStandardMaterial
+                  color="#f3f4f6"
+                  metalness={0.8}
+                  roughness={0.2}
+                />
+              </Cylinder>
+            ))}
+
+            {/* Dome on top */}
+            <Sphere
+              args={[2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]}
+              position={[0, 6.5, 0]}
+            >
+              <meshStandardMaterial
+                color="#a855f7"
+                metalness={0.9}
+                roughness={0.1}
+                emissive="#9333ea"
+                emissiveIntensity={isHovered ? 0.6 : 0.4}
+                transparent
+                opacity={0.95}
+              />
+            </Sphere>
+
+            {/* Dome base ring */}
+            <Cylinder args={[2.1, 2.1, 0.3, 32]} position={[0, 6.3, 0]}>
+              <meshStandardMaterial
+                color="#f3f4f6"
+                metalness={0.8}
+                roughness={0.2}
+              />
+            </Cylinder>
+
+            {/* Windows - front and back */}
+            {[...Array(3)].map((_, row) => (
+              <group key={row}>
+                {[...Array(2)].map((_, col) => (
+                  <group key={col}>
+                    {/* Front windows */}
+                    <Box
+                      args={[0.8, 0.9, 0.1]}
+                      position={[-1 + col * 2, 2 + row * 1.3, 1.8]}
+                    >
+                      <meshStandardMaterial
+                        color="#c4b5fd"
+                        metalness={1}
+                        roughness={0}
+                        transparent
+                        opacity={0.9}
+                        emissive="#a78bfa"
+                        emissiveIntensity={isHovered ? 0.5 : 0.3}
+                      />
+                    </Box>
+                    {/* Back windows */}
+                    <Box
+                      args={[0.8, 0.9, 0.1]}
+                      position={[-1 + col * 2, 2 + row * 1.3, -1.8]}
+                    >
+                      <meshStandardMaterial
+                        color="#c4b5fd"
+                        metalness={1}
+                        roughness={0}
+                        transparent
+                        opacity={0.9}
+                        emissive="#a78bfa"
+                        emissiveIntensity={isHovered ? 0.5 : 0.3}
+                      />
+                    </Box>
+                  </group>
+                ))}
+              </group>
+            ))}
+
+            {/* Main entrance door */}
+            <Box args={[1.2, 2.5, 0.2]} position={[0, 1.85, 1.85]}>
+              <meshStandardMaterial
+                color="#1e293b"
+                metalness={0.7}
+                roughness={0.3}
+              />
+            </Box>
+
+            {/* Entrance steps */}
+            {[0, 1, 2].map((i) => (
+              <Box
+                key={i}
+                args={[2 + i * 0.5, 0.2, 0.8]}
+                position={[0, 0.7 - i * 0.3, 2.5 + i * 0.4]}
+              >
+                <meshStandardMaterial
+                  color="#94a3b8"
+                  metalness={0.4}
+                  roughness={0.6}
+                />
+              </Box>
+            ))}
+
+            {/* Ballot box symbol on dome */}
+            <Box
+              args={[0.6, 0.5, 0.6]}
+              position={[0, 7.5, 0]}
+              rotation={[0, Math.PI / 4, 0]}
+            >
+              <meshStandardMaterial
+                color="#f3f4f6"
+                metalness={0.9}
+                roughness={0.1}
+                emissive="#ffffff"
+                emissiveIntensity={isHovered ? 0.8 : 0.5}
+              />
+            </Box>
+            {/* Slot on ballot box */}
+            <Box args={[0.5, 0.1, 0.1]} position={[0, 7.8, 0]}>
+              <meshStandardMaterial
+                color="#1e293b"
+                metalness={0.5}
+                roughness={0.5}
+              />
+            </Box>
+          </group>
+        );
+
+      case "faucet":
+        // Token Faucet - Water Fountain Style with Teal Colors
+        return (
+          <group scale={1.6}>
+            {/* Base fountain pool */}
+            <Cylinder args={[2.5, 3, 0.8, 8]} position={[0, 0.4, 0]} castShadow>
+              <meshStandardMaterial
+                color="#0f766e"
+                metalness={0.6}
+                roughness={0.3}
+              />
+            </Cylinder>
+
+            {/* Main fountain tower */}
+            <Cylinder
+              args={[1.5, 1.8, 6, 16]}
+              position={[0, 3.4, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color="#14b8a6"
+                metalness={0.85}
+                roughness={0.2}
+                emissive={color}
+                emissiveIntensity={isHovered ? 0.5 : 0.3}
+              />
+            </Cylinder>
+
+            {/* Fountain top dome */}
+            <Sphere args={[1.6, 16, 16]} position={[0, 7, 0]}>
+              <meshStandardMaterial
+                color="#2dd4bf"
+                metalness={0.9}
+                roughness={0.1}
+                emissive="#14b8a6"
+                emissiveIntensity={isHovered ? 0.6 : 0.4}
+              />
+            </Sphere>
+
+            {/* Water spouts (decorative) */}
+            {[0, 1, 2, 3].map((i) => (
+              <group
+                key={`spout-${i}`}
+                rotation={[0, (i / 4) * Math.PI * 2, 0]}
+              >
+                <Cylinder
+                  args={[0.15, 0.1, 1.5]}
+                  position={[1.6, 3.5, 0]}
+                  rotation={[0, 0, Math.PI / 6]}
+                >
+                  <meshStandardMaterial
+                    color="#0d9488"
+                    metalness={0.8}
+                    roughness={0.2}
+                  />
+                </Cylinder>
+              </group>
+            ))}
+
+            {/* Coin symbols floating around */}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <Cylinder
+                key={`coin-${i}`}
+                args={[0.3, 0.3, 0.1, 16]}
+                position={[
+                  Math.cos((i / 8) * Math.PI * 2) * 2.2,
+                  4 + Math.sin((i / 4) * Math.PI) * 0.5,
+                  Math.sin((i / 8) * Math.PI * 2) * 2.2,
+                ]}
+                rotation={[Math.PI / 2, 0, (i / 8) * Math.PI * 2]}
+              >
+                <meshStandardMaterial
+                  color="#fef08a"
+                  metalness={1}
+                  roughness={0}
+                  emissive="#fbbf24"
+                  emissiveIntensity={isHovered ? 0.8 : 0.5}
+                />
+              </Cylinder>
+            ))}
+
+            {/* Central faucet pipe */}
+            <Cylinder args={[0.3, 0.3, 2]} position={[0, 8.5, 0]}>
+              <meshStandardMaterial
+                color="#0f766e"
+                metalness={0.9}
+                roughness={0.1}
+              />
+            </Cylinder>
+
+            {/* Faucet head */}
+            <Sphere args={[0.5, 16, 16]} position={[0, 9.5, 0]}>
+              <meshStandardMaterial
+                color="#5eead4"
+                metalness={0.95}
+                roughness={0.05}
+                emissive="#14b8a6"
+                emissiveIntensity={0.8}
+              />
+            </Sphere>
+
+            {/* Glowing water droplets */}
+            {[0, 1, 2].map((i) => (
+              <Sphere
+                key={`drop-${i}`}
+                args={[0.15, 8, 8]}
+                position={[0, 0.8 + i * 0.5, 0]}
+              >
+                <meshStandardMaterial
+                  color="#5eead4"
+                  transparent
+                  opacity={0.7}
+                  emissive="#14b8a6"
+                  emissiveIntensity={isHovered ? 1.2 : 0.8}
+                />
+              </Sphere>
+            ))}
+
+            {/* Decorative pillars around base */}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <Box
+                key={`pillar-${i}`}
+                args={[0.2, 2, 0.2]}
+                position={[
+                  Math.cos((i / 8) * Math.PI * 2) * 2.8,
+                  1.4,
+                  Math.sin((i / 8) * Math.PI * 2) * 2.8,
+                ]}
+                castShadow
+              >
+                <meshStandardMaterial
+                  color="#0f766e"
+                  metalness={0.7}
+                  roughness={0.3}
+                />
+              </Box>
+            ))}
+          </group>
+        );
+
+      case "admin":
+        // Admin Center - Secure Government Building
+        return (
+          <group scale={1.8}>
+            {/* Main tower - strong and secure look */}
+            <Box
+              args={[3, 9, 3]}
+              position={[0, 4.5, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color="#4338ca"
+                metalness={0.6}
+                roughness={0.3}
+                emissive={color}
+                emissiveIntensity={isHovered ? 0.4 : 0.2}
+              />
+            </Box>
+
+            {/* Shield emblem on front */}
+            <group position={[0, 6, 1.55]}>
+              <Box args={[1.2, 1.5, 0.1]}>
+                <meshStandardMaterial
+                  color="#818cf8"
+                  emissive="#818cf8"
+                  emissiveIntensity={isHovered ? 0.8 : 0.5}
+                />
+              </Box>
+              {/* Shield top triangle */}
+              <Cone
+                args={[0.6, 0.6, 3]}
+                position={[0, 0.9, 0]}
+                rotation={[0, 0, 0]}
+              >
+                <meshStandardMaterial
+                  color="#818cf8"
+                  emissive="#818cf8"
+                  emissiveIntensity={isHovered ? 0.8 : 0.5}
+                />
+              </Cone>
+            </group>
+
+            {/* Corner pillars - security */}
+            {[-1.5, 1.5].map((x) =>
+              [-1.5, 1.5].map((z) => (
+                <Box
+                  key={`pillar-${x}-${z}`}
+                  args={[0.3, 9.5, 0.3]}
+                  position={[x, 4.75, z]}
+                  castShadow
+                >
+                  <meshStandardMaterial
+                    color="#312e81"
+                    metalness={0.8}
+                    roughness={0.2}
+                  />
+                </Box>
+              ))
+            )}
+
+            {/* Top security lights */}
+            {[0, 1, 2, 3].map((i) => (
+              <pointLight
+                key={`security-${i}`}
+                position={[
+                  Math.cos((i / 4) * Math.PI * 2) * 2,
+                  9.5,
+                  Math.sin((i / 4) * Math.PI * 2) * 2,
+                ]}
+                intensity={isHovered ? 2 : 1}
+                distance={8}
+                color="#6366f1"
+              />
+            ))}
+
+            {/* Windows with security bars */}
+            {[...Array(7)].map((_, floor) =>
+              [...Array(2)].map((_, col) => (
+                <group key={`window-${floor}-${col}`}>
+                  <Box
+                    args={[0.7, 0.8, 0.1]}
+                    position={[(col - 0.5) * 1.5, floor * 1.2 + 1, 1.52]}
+                  >
+                    <meshStandardMaterial
+                      color="#60a5fa"
+                      metalness={0.9}
+                      roughness={0.1}
+                      transparent
+                      opacity={0.6}
+                    />
+                  </Box>
+                  {/* Security bars */}
+                  <Box
+                    args={[0.05, 0.8, 0.12]}
+                    position={[(col - 0.5) * 1.5, floor * 1.2 + 1, 1.52]}
+                  >
+                    <meshStandardMaterial color="#1e293b" />
+                  </Box>
+                </group>
+              ))
+            )}
+          </group>
+        );
+
+      case "doctor":
+        // Doctor Portal - Modern Medical Office
+        return (
+          <group scale={1.6}>
+            {/* Main building - clean medical aesthetic */}
+            <Box
+              args={[3.5, 8, 3]}
+              position={[0, 4, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshStandardMaterial
+                color="#fdf2f8"
+                metalness={0.3}
+                roughness={0.4}
+                emissive={color}
+                emissiveIntensity={isHovered ? 0.2 : 0.1}
+              />
+            </Box>
+
+            {/* Pink medical cross on front */}
+            <Box args={[0.6, 2.5, 0.12]} position={[0, 5, 1.52]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={isHovered ? 0.8 : 0.5}
+              />
+            </Box>
+            <Box args={[2, 0.6, 0.12]} position={[0, 5, 1.52]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={isHovered ? 0.8 : 0.5}
+              />
+            </Box>
+
+            {/* Pink accent bands */}
+            <Box args={[3.6, 0.4, 3.1]} position={[0, 7, 0]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={0.3}
+              />
+            </Box>
+            <Box args={[3.6, 0.4, 3.1]} position={[0, 3, 0]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={0.3}
+              />
+            </Box>
+
+            {/* Medical windows - bright and welcoming */}
+            {[...Array(6)].map((_, floor) =>
+              [...Array(3)].map((_, col) => (
+                <Box
+                  key={`window-${floor}-${col}`}
+                  args={[0.7, 0.8, 0.1]}
+                  position={[(col - 1) * 1.1, floor * 1.2 + 0.8, 1.52]}
+                >
+                  <meshStandardMaterial
+                    color="#fbcfe8"
+                    metalness={0.5}
+                    roughness={0.2}
+                    transparent
+                    opacity={0.8}
+                    emissive="#f9a8d4"
+                    emissiveIntensity={0.3}
+                  />
+                </Box>
+              ))
+            )}
+
+            {/* Stethoscope icon on side (simplified) */}
+            <Sphere args={[0.3, 16, 16]} position={[1.8, 6, 0]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={0.5}
+              />
+            </Sphere>
+            <Cylinder args={[0.08, 0.08, 2, 8]} position={[1.8, 5, 0]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                metalness={0.7}
+                roughness={0.3}
+              />
+            </Cylinder>
+
+            {/* Entrance canopy */}
+            <Box args={[2.5, 0.15, 1.2]} position={[0, 1.2, 1.8]}>
+              <meshStandardMaterial
+                color="#ec4899"
+                emissive="#ec4899"
+                emissiveIntensity={0.3}
+              />
+            </Box>
+          </group>
+        );
+
       default:
         // Simple box fallback
         return (
@@ -1076,10 +1588,30 @@ export function Building3D({
       {/* Label on hover */}
       {isHovered && (
         <Html center position={[0, height + 2, 0]}>
-          <div className="bg-black/90 backdrop-blur-sm px-4 py-2 rounded-lg border-2 border-cyan-400/50 shadow-xl shadow-cyan-500/50">
-            <p className="text-white font-bold text-sm whitespace-nowrap">
+          <div className="bg-black/90 backdrop-blur-sm px-4 py-3 rounded-lg border-2 border-cyan-400/50 shadow-xl shadow-cyan-500/50 min-w-[250px]">
+            <p className="text-white font-bold text-sm whitespace-nowrap mb-2">
               {name}
             </p>
+            {userDID && (
+              <div className="border-t border-cyan-500/30 pt-2 mt-2">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-cyan-300 text-xs">🆔 Your DID:</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard.writeText(userDID);
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 transition-colors text-xs px-2 py-0.5 bg-cyan-500/10 rounded hover:bg-cyan-500/20"
+                    title="Copy DID"
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+                <div className="text-xs font-mono text-gray-300 bg-black/60 px-2 py-1 rounded border border-cyan-500/20 overflow-hidden text-ellipsis">
+                  {userDID.slice(0, 15)}...{userDID.slice(-8)}
+                </div>
+              </div>
+            )}
           </div>
         </Html>
       )}

@@ -115,18 +115,49 @@ export default function IdentityPage() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [idNumber, setIdNumber] = useState("");
 
-  const { useIsVerified, useGetIdentity, registerIdentity, isPending } =
-    useIdentityRegistry();
+  const {
+    useUserDIDs,
+    useIdentityByDID,
+    useVerifyIdentity,
+    registerIdentity,
+    updateIdentity,
+    revokeIdentity,
+    isPending,
+    isConfirming,
+    isSuccess,
+  } = useIdentityRegistry();
 
-  const { data: isVerified } = useIsVerified(address);
-  const { data: identity } = useGetIdentity(address);
+  // Get user's DID (first one in their list)
+  const { data: userDID } = useUserDIDs(address);
+  const did = userDID && typeof userDID === "string" ? userDID : "";
 
-  // Parse identity data (array format from contract)
-  const hasIdentity = identity && Array.isArray(identity) && identity[0];
-  const identityName = hasIdentity ? identity[0] : "";
-  const identityDOB = hasIdentity ? identity[1] : "";
-  const identityIDNumber = hasIdentity ? identity[2] : "";
-  const identityVerified = hasIdentity ? identity[3] : false;
+  // Get identity data using the DID
+  const { data: identityData } = useIdentityByDID(did);
+  const { data: isVerified } = useVerifyIdentity(did);
+
+  // Parse identity data from contract (Identity struct)
+  const hasIdentity =
+    identityData && Array.isArray(identityData) && identityData[0];
+  const identityOwner = hasIdentity ? identityData[0] : "";
+  const didDocument = hasIdentity ? identityData[1] : "";
+  const isActive = hasIdentity ? identityData[2] : false;
+  const createdAt = hasIdentity ? identityData[3] : 0;
+
+  // Parse DID document to extract user info
+  let identityName = "";
+  let identityDOB = "";
+  let identityIDNumber = "";
+
+  if (didDocument && typeof didDocument === "string") {
+    try {
+      const parsed = JSON.parse(didDocument);
+      identityName = parsed.name || "";
+      identityDOB = parsed.dateOfBirth || "";
+      identityIDNumber = parsed.idNumber || "";
+    } catch (e) {
+      console.error("Error parsing DID document:", e);
+    }
+  }
 
   // Mock stats (in real app, fetch from contract)
   const totalRegistrations = 1247;
@@ -143,22 +174,29 @@ export default function IdentityPage() {
 
   // Handle Register
   const handleRegister = async () => {
-    if (!name || !dateOfBirth || !idNumber || !isConnected) return;
+    if (!name || !dateOfBirth || !idNumber || !isConnected || !address) return;
     try {
-      await registerIdentity(name, dateOfBirth, idNumber);
+      registerIdentity(name, dateOfBirth, idNumber, address);
+      // Success will be shown via useEffect watching isSuccess
+    } catch (error) {
+      console.error("Registration failed:", error);
+      showNotification("Registration failed. Please try again.", "error");
+    }
+  };
+
+  // Watch for transaction success
+  useEffect(() => {
+    if (isSuccess) {
       showNotification(
-        "Identity registered successfully! Pending verification.",
+        "Identity registered successfully! Your DID is now active.",
         "success"
       );
       setName("");
       setDateOfBirth("");
       setIdNumber("");
       setActiveTab("overview");
-    } catch (error) {
-      console.error("Registration failed:", error);
-      showNotification("Registration failed. Please try again.", "error");
     }
-  };
+  }, [isSuccess]);
 
   // Auto-refresh on new blocks
   useEffect(() => {
@@ -260,23 +298,31 @@ export default function IdentityPage() {
           <StatsCard
             title="YOUR STATUS"
             value={
-              isVerified ? "VERIFIED" : hasIdentity ? "PENDING" : "UNREGISTERED"
+              hasIdentity && isActive
+                ? "VERIFIED"
+                : hasIdentity
+                ? "INACTIVE"
+                : "UNREGISTERED"
             }
             subtitle={
-              isVerified
-                ? "Full Access"
+              hasIdentity && isActive
+                ? "Identity Active"
                 : hasIdentity
-                ? "Awaiting Review"
+                ? "Identity Revoked"
                 : "Register Now"
             }
             icon={
-              isVerified ? FaCheckCircle : hasIdentity ? FaClock : FaUserPlus
+              hasIdentity && isActive
+                ? FaCheckCircle
+                : hasIdentity
+                ? FaClock
+                : FaUserPlus
             }
             gradient={
-              isVerified
+              hasIdentity && isActive
                 ? "from-green-500/20 to-green-600/20"
                 : hasIdentity
-                ? "from-yellow-500/20 to-yellow-600/20"
+                ? "from-red-500/20 to-red-600/20"
                 : "from-gray-500/20 to-gray-600/20"
             }
           />
@@ -310,28 +356,31 @@ export default function IdentityPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`bg-gradient-to-br ${
-              identityVerified
+              isActive
                 ? "from-green-900/40 to-green-800/40 border-green-500/30"
-                : "from-yellow-900/40 to-yellow-800/40 border-yellow-500/30"
+                : "from-red-900/40 to-red-800/40 border-red-500/30"
             } border rounded-2xl p-6 backdrop-blur-xl`}
           >
             <div className="flex items-start gap-4">
-              {identityVerified ? (
+              {isActive ? (
                 <FaCheckCircle className="text-3xl text-green-400 flex-shrink-0 mt-1" />
               ) : (
-                <FaClock className="text-3xl text-yellow-400 flex-shrink-0 mt-1" />
+                <FaClock className="text-3xl text-red-400 flex-shrink-0 mt-1" />
               )}
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">
-                  {identityVerified
-                    ? "Identity Verified ✓"
-                    : "Identity Pending Review"}
+                  {isActive ? "Identity Active ✓" : "Identity Inactive"}
                 </h3>
                 <p className="text-gray-300 text-sm">
-                  {identityVerified
-                    ? "Your identity has been verified! You now have full access to all NeoCity services."
-                    : "Your identity registration is under review by city administrators. This typically takes 24-48 hours."}
+                  {isActive
+                    ? "Your decentralized identity (DID) is active! You now have full access to all NeoCity services."
+                    : "Your identity has been revoked or deactivated. Contact city administrators for assistance."}
                 </p>
+                {did && (
+                  <p className="text-green-400/80 text-xs mt-2 font-mono">
+                    DID: {did}
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>
@@ -429,18 +478,16 @@ export default function IdentityPage() {
                         </div>
                         <div
                           className={`text-lg font-semibold flex items-center gap-2 ${
-                            identityVerified
-                              ? "text-green-400"
-                              : "text-yellow-400"
+                            isActive ? "text-green-400" : "text-red-400"
                           }`}
                         >
-                          {identityVerified ? (
+                          {isActive ? (
                             <>
-                              <FaCheckCircle /> Verified
+                              <FaCheckCircle /> Active
                             </>
                           ) : (
                             <>
-                              <FaClock /> Pending
+                              <FaClock /> Inactive
                             </>
                           )}
                         </div>
@@ -572,13 +619,19 @@ export default function IdentityPage() {
 
                   <button
                     onClick={handleRegister}
-                    disabled={!name || !dateOfBirth || !idNumber || isPending}
+                    disabled={
+                      !name ||
+                      !dateOfBirth ||
+                      !idNumber ||
+                      isPending ||
+                      isConfirming
+                    }
                     className="w-full py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {isPending ? (
+                    {isPending || isConfirming ? (
                       <>
                         <FaSpinner className="animate-spin" />
-                        {hasIdentity ? "Updating..." : "Registering..."}
+                        {isPending ? "Sending..." : "Confirming..."}
                       </>
                     ) : (
                       <>

@@ -23,6 +23,7 @@ contract Voting is AccessControl, ReentrancyGuard {
         uint256 noVotes;
         ProposalStatus status;
         mapping(string => bool) hasVoted;
+        mapping(address => bool) hasVotedByAddress; // For simple voting
     }
     
     struct Vote {
@@ -95,7 +96,7 @@ contract Voting is AccessControl, ReentrancyGuard {
     function revealVote(
         uint256 proposalId,
         string memory did,
-        bool vote,
+        bool voteChoice,
         uint256 nonce
     ) external onlyValidDID(did) {
         require(proposalId <= proposalCount, "Invalid proposal ID");
@@ -104,19 +105,39 @@ contract Voting is AccessControl, ReentrancyGuard {
         require(proposals[proposalId].hasVoted[did], "No vote committed");
         require(!votes[proposalId][did].revealed, "Vote already revealed");
         
-        bytes32 hash = keccak256(abi.encodePacked(vote, nonce));
+        bytes32 hash = keccak256(abi.encodePacked(voteChoice, nonce));
         require(hash == votes[proposalId][did].commitHash, "Invalid reveal");
         
         votes[proposalId][did].revealed = true;
-        votes[proposalId][did].vote = vote;
+        votes[proposalId][did].vote = voteChoice;
         
-        if (vote) {
+        if (voteChoice) {
             proposals[proposalId].yesVotes++;
         } else {
             proposals[proposalId].noVotes++;
         }
         
-        emit VoteRevealed(proposalId, did, vote, block.timestamp);
+        emit VoteRevealed(proposalId, did, voteChoice, block.timestamp);
+    }
+    
+    // Simple vote function for demo purposes (bypasses commit-reveal)
+    // Gas optimized - uses address instead of DID string lookup
+    function vote(uint256 proposalId, bool support) external {
+        require(proposalId <= proposalCount, "Invalid proposal ID");
+        require(block.timestamp <= proposals[proposalId].endTime, "Voting period ended");
+        require(proposals[proposalId].status == ProposalStatus.Active, "Proposal not active");
+        require(!proposals[proposalId].hasVotedByAddress[msg.sender], "Already voted");
+        
+        proposals[proposalId].hasVotedByAddress[msg.sender] = true;
+        
+        if (support) {
+            proposals[proposalId].yesVotes++;
+        } else {
+            proposals[proposalId].noVotes++;
+        }
+        
+        // Emit with empty DID for gas savings
+        emit VoteRevealed(proposalId, "", support, block.timestamp);
     }
     
     function executeProposal(uint256 proposalId) external {

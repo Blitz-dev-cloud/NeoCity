@@ -17,6 +17,7 @@ contract IdentityRegistry is Ownable, AccessControl {
     
     mapping(string => Identity) public identities;
     mapping(address => string[]) public userDIDs;
+    mapping(address => string) public addressToDID; // Primary DID for each address
     mapping(string => mapping(string => bool)) public verifiableCredentials;
     
     event IdentityRegistered(string indexed did, address indexed owner, uint256 timestamp);
@@ -54,6 +55,11 @@ contract IdentityRegistry is Ownable, AccessControl {
         });
         
         userDIDs[msg.sender].push(did);
+        
+        // Set as primary DID if this is the first one
+        if (bytes(addressToDID[msg.sender]).length == 0) {
+            addressToDID[msg.sender] = did;
+        }
         
         emit IdentityRegistered(did, msg.sender, block.timestamp);
     }
@@ -110,6 +116,10 @@ contract IdentityRegistry is Ownable, AccessControl {
 
     function getIdentityOwner(string memory did) external view returns (address) {
         return identities[did].owner;
+    }
+    
+    function getDidByAddress(address owner) external view returns (string memory) {
+        return addressToDID[owner];
     }
 
 }

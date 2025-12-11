@@ -1,20 +1,20 @@
-import DeFiTokenArtifact from "./DeFiToken.json";
-import IdentityRegistryArtifact from "./IdentityRegistry.json";
-import DeFiBankArtifact from "./DeFiBank.json";
-import VotingArtifact from "./Voting.json";
-import GrievanceArtifact from "./Grievance.json";
-import EHRRegistryArtifact from "./EHRRegistry.json";
-import SupplyChainArtifact from "./SupplyChain.json";
-import TrafficLogArtifact from "./TrafficLog.json";
+export { DeFiTokenABI } from "./DeFiToken";
+export { IdentityRegistryABI } from "./IdentityRegistry";
+export { DeFiBankABI } from "./DeFiBank";
+export { VotingABI } from "./Voting";
+export { GrievanceABI } from "./Grievance";
+export { EHRRegistryABI } from "./EHRRegistry";
+export { SupplyChainABI } from "./SupplyChain";
+export { TrafficLogABI } from "./TrafficLog";
 
-export const DeFiTokenABI = DeFiTokenArtifact.abi;
-export const IdentityRegistryABI = IdentityRegistryArtifact.abi;
-export const DeFiBankABI = DeFiBankArtifact.abi;
-export const VotingABI = VotingArtifact.abi;
-export const GrievanceABI = GrievanceArtifact.abi;
-export const EHRRegistryABI = EHRRegistryArtifact.abi;
-export const SupplyChainABI = SupplyChainArtifact.abi;
-export const TrafficLogABI = TrafficLogArtifact.abi;
+import { DeFiTokenABI } from "./DeFiToken";
+import { IdentityRegistryABI } from "./IdentityRegistry";
+import { DeFiBankABI } from "./DeFiBank";
+import { VotingABI } from "./Voting";
+import { GrievanceABI } from "./Grievance";
+import { EHRRegistryABI } from "./EHRRegistry";
+import { SupplyChainABI } from "./SupplyChain";
+import { TrafficLogABI } from "./TrafficLog";
 
 export const contractABIs = {
   DeFiToken: DeFiTokenABI,

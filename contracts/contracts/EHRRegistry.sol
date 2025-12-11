@@ -126,9 +126,18 @@ contract EHRRegistry is AccessControl, ReentrancyGuard {
     function getPatientRecords(string memory patientDID) 
         external 
         view 
-        onlyPatientOrAuthorizedDoctor(patientDID) 
         returns (MedicalRecord[] memory) 
     {
+        // Allow patient to view own records OR authorized doctors
+        bool isPatient = identityRegistry.verifyIdentity(patientDID) && 
+                        identityRegistry.getIdentityOwner(patientDID) == msg.sender;
+
+        bool isAuthorizedDoctor = (hasRole(DOCTOR_ROLE, msg.sender) || authorizedDoctors[msg.sender]) &&
+                                accessGrants[patientDID][msg.sender].isActive &&
+                                accessGrants[patientDID][msg.sender].expiryTime > block.timestamp;
+
+        require(isPatient || isAuthorizedDoctor, "Unauthorized access");
+        
         return patientRecords[patientDID];
     }
     

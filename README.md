@@ -14,6 +14,7 @@
 ## ✨ Features
 
 ### 🎨 Interactive 3D City Visualization
+
 - **Procedurally Generated Buildings**: 8 unique, detailed 3D buildings with custom architecture
   - 🏦 Bank: Modern glass skyscraper with 24-row window grid, helipad, and antenna
   - 🏛️ City Hall: Classical dome building with columns and entrance steps
@@ -28,6 +29,7 @@
 - **City Infrastructure**: Street lights, benches, trees, and urban atmosphere
 
 ### 💼 DeFi Banking System
+
 - **Token Management**: ERC20-compliant NEO token with minting capabilities
 - **Deposits & Withdrawals**: Secure staking with interest accrual
 - **Loan System**: Collateralized loans with 150% ratio requirement
@@ -36,6 +38,7 @@
 - **Dashboard Analytics**: Stats cards, charts, and portfolio overview
 
 ### 🗳️ Governance & Voting
+
 - **Proposal Creation**: Submit and manage governance proposals
 - **Democratic Voting**: Yes/No voting with transparent vote counting
 - **Voting Power**: Based on token holdings and registration status
@@ -44,6 +47,7 @@
 - **Proposal Management**: 7-day voting period with automatic resolution
 
 ### 🆔 Digital Identity Registry
+
 - **DID Registration**: Blockchain-based digital identity creation
 - **Verification System**: Multi-level identity verification process
 - **Credential Management**: Secure storage of identity credentials
@@ -52,6 +56,7 @@
 - **Benefits Access**: Governance, financial services, healthcare, civic services
 
 ### ⚖️ Grievance Filing System
+
 - **Case Submission**: File grievances with detailed descriptions
 - **Status Tracking**: Monitor case progress (Pending, Under Review, Resolved, Dismissed)
 - **Evidence Upload**: IPFS integration for document storage
@@ -60,6 +65,7 @@
 - **Justice Dashboard**: Court-themed interface with case analytics
 
 ### 🏥 Healthcare (EHR) Management
+
 - **Medical Records**: Secure electronic health record storage
 - **Doctor Access Control**: Grant/revoke access to healthcare providers
 - **Record Upload**: Add new medical records with timestamps
@@ -68,6 +74,7 @@
 - **HIPAA Compliance**: Blockchain-based privacy protection
 
 ### 📦 Supply Chain Tracking
+
 - **Batch Registration**: Register product batches with unique IDs
 - **Ownership Transfer**: Track ownership changes through supply chain
 - **Location Updates**: Real-time location tracking of shipments
@@ -76,6 +83,7 @@
 - **Traceability**: Complete audit trail from farm to consumer
 
 ### 🚦 Traffic Logging System
+
 - **Traffic Recording**: Log traffic data with location and timestamps
 - **Congestion Monitoring**: Track congestion levels (Low, Medium, High, Critical)
 - **Live Dashboard**: Real-time traffic flow visualization
@@ -137,12 +145,14 @@ NeoCity/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Blitz-dev-cloud/NeoCity.git
    cd NeoCity
    ```
 
 2. **Install contract dependencies**
+
    ```bash
    cd contracts
    npm install
@@ -159,12 +169,14 @@ NeoCity/
 #### Option 1: Local Hardhat Node (Development)
 
 1. **Start local blockchain**
+
    ```bash
    cd contracts
    npx hardhat node
    ```
 
 2. **Deploy contracts** (in a new terminal)
+
    ```bash
    npx hardhat run scripts/deploy.js --network localhost
    ```
@@ -177,6 +189,7 @@ NeoCity/
 #### Option 2: Sepolia Testnet (Production)
 
 1. **Configure environment**
+
    ```bash
    cd contracts
    cp .env.example .env
@@ -191,12 +204,14 @@ NeoCity/
 ### Frontend Development
 
 1. **Sync contract data**
+
    ```bash
    cd frontend
    npm run sync-contracts
    ```
 
 2. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -209,12 +224,14 @@ NeoCity/
 ### Configure MetaMask
 
 1. **Add Local Network** (for Hardhat node)
+
    - Network Name: `Hardhat Local`
    - RPC URL: `http://127.0.0.1:8545`
    - Chain ID: `31337`
    - Currency: `ETH`
 
 2. **Import Test Account**
+
    - Copy private key from Hardhat node output
    - Import into MetaMask
 
@@ -241,6 +258,7 @@ NeoCity/
 ### Using Dashboards
 
 Each dashboard provides:
+
 - **"Back to City" button** (top-left) to return to 3D scene
 - **Wallet connection** required for blockchain interactions
 - **Tab navigation** for different features
@@ -250,6 +268,7 @@ Each dashboard provides:
 ### Example Workflows
 
 #### 1. DeFi Banking
+
 ```
 1. Navigate to Banking Dashboard
 2. Connect wallet
@@ -261,6 +280,7 @@ Each dashboard provides:
 ```
 
 #### 2. Governance Voting
+
 ```
 1. Navigate to Voting Dashboard
 2. Connect wallet
@@ -271,6 +291,7 @@ Each dashboard provides:
 ```
 
 #### 3. Supply Chain Tracking
+
 ```
 1. Navigate to Supply Chain Dashboard
 2. Connect wallet (farmer account)
@@ -283,6 +304,7 @@ Each dashboard provides:
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **Framework**: Next.js 15.5.6 (App Router, React Server Components)
 - **UI Library**: React 19.1.0
 - **3D Graphics**: Three.js 0.180.0, React Three Fiber 9.4.0, Drei 10.7.6
@@ -292,6 +314,7 @@ Each dashboard provides:
 - **Icons**: React Icons 5.5.0
 
 ### Smart Contracts
+
 - **Language**: Solidity ^0.8.27
 - **Framework**: Hardhat 2.26.3
 - **Libraries**: OpenZeppelin Contracts 5.4.0
@@ -299,6 +322,7 @@ Each dashboard provides:
 - **Tools**: Ethers.js 6.15.0, TypeChain 8.3.2
 
 ### Development Tools
+
 - **Build Tool**: Turbopack (Next.js 15)
 - **TypeScript**: 5.x
 - **Linting**: ESLint 9.x
@@ -307,6 +331,7 @@ Each dashboard provides:
 ## 📊 Smart Contract Details
 
 ### DeFiToken (NEO)
+
 ```solidity
 - Symbol: NEO
 - Decimals: 18
@@ -316,6 +341,7 @@ Each dashboard provides:
 ```
 
 ### DeFiBank
+
 ```solidity
 - Interest Rate: 5% APY
 - Collateral Ratio: 150%
@@ -324,6 +350,7 @@ Each dashboard provides:
 ```
 
 ### Voting
+
 ```solidity
 - Voting Period: 7 days
 - Reveal Period: 2 days
@@ -332,6 +359,7 @@ Each dashboard provides:
 ```
 
 ### IdentityRegistry
+
 ```solidity
 - Functions: registerIdentity, verifyIdentity, updateIdentity
 - Privacy: On-chain storage with access control
@@ -339,6 +367,7 @@ Each dashboard provides:
 ```
 
 ### Grievance
+
 ```solidity
 - Functions: fileGrievance, updateStatus, resolveGrievance
 - Status: Pending, UnderReview, Resolved, Dismissed
@@ -346,6 +375,7 @@ Each dashboard provides:
 ```
 
 ### EHRRegistry
+
 ```solidity
 - Functions: addRecord, grantAccess, revokeAccess
 - Privacy: Patient-controlled access
@@ -353,6 +383,7 @@ Each dashboard provides:
 ```
 
 ### SupplyChain
+
 ```solidity
 - Functions: registerBatch, updateLocation, transferOwnership
 - Status: Created, InTransit, Delivered, Sold, Recalled
@@ -360,6 +391,7 @@ Each dashboard provides:
 ```
 
 ### TrafficLog
+
 ```solidity
 - Functions: logTraffic, emergencyLog, getTrafficData
 - Congestion: Low, Medium, High, Critical
@@ -387,6 +419,7 @@ npx hardhat coverage
 ```
 
 ### Test Coverage
+
 - ✅ DeFiToken: 100% coverage
 - ✅ DeFiBank: 95% coverage
 - ✅ Voting: 90% coverage
@@ -415,6 +448,7 @@ We welcome contributions! Please follow these steps:
 5. **Open a Pull Request**
 
 ### Development Guidelines
+
 - Write tests for new features
 - Follow existing code style
 - Update documentation
@@ -424,11 +458,13 @@ We welcome contributions! Please follow these steps:
 ## 🔒 Security
 
 ### Audit Status
+
 - ⚠️ **Not yet audited** - Use at your own risk
 - Smart contracts are under active development
 - Do not use in production without proper audit
 
 ### Reporting Vulnerabilities
+
 Please report security vulnerabilities to: **security@neocity.example.com**
 
 ## 📄 License
@@ -452,6 +488,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 🗺️ Roadmap
 
 ### Phase 1 ✅ (Completed)
+
 - [x] Smart contract development (8 contracts)
 - [x] 3D city visualization with procedural buildings
 - [x] All dashboard implementations
@@ -459,6 +496,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - [x] Local deployment and testing
 
 ### Phase 2 🚧 (In Progress)
+
 - [ ] Sepolia testnet deployment
 - [ ] Mobile responsive optimizations
 - [ ] Enhanced 3D animations
@@ -466,6 +504,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - [ ] User documentation
 
 ### Phase 3 📅 (Planned)
+
 - [ ] Smart contract audit
 - [ ] Mainnet deployment
 - [ ] IPFS integration for file storage
@@ -473,6 +512,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - [ ] Mobile app (React Native)
 
 ### Phase 4 🔮 (Future)
+
 - [ ] DAO governance implementation
 - [ ] Cross-chain bridge integration
 - [ ] AI-powered city optimization

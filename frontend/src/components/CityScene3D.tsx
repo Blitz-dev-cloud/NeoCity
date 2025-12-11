@@ -8,17 +8,21 @@ import { Ground } from "./Ground";
 import { CityVehicles } from "./CityVehicles";
 import { TrafficLight, TrafficLightController } from "./TrafficLights";
 import { CityInfrastructure } from "./CityInfrastructure";
+// TrafficCongestionMonitor must be rendered outside of the R3F <Canvas> (it returns DOM nodes).
+// Importing it here is unnecessary and may cause runtime errors if rendered inside the Canvas.
 
 interface CityScene3DProps {
   onBuildingClick: (buildingId: string) => void;
   hoveredBuilding: string | null;
   onBuildingHover: (buildingId: string | null) => void;
+  userDID?: string; // Optional DID to display on building tooltips
 }
 
 export function CityScene3D({
   onBuildingClick,
   hoveredBuilding,
   onBuildingHover,
+  userDID,
 }: CityScene3DProps) {
   // Buildings positioned CENTERED on GREEN patches (avoiding roads)
   // Main roads: x=0 (10 wide: -5 to 5), z=0 (10 wide: -5 to 5)
@@ -51,12 +55,28 @@ export function CityScene3D({
       style: "hospital",
     },
     {
-      id: "shop",
-      name: "🏪 Commerce Shop",
-      position: [52, 0, -52] as [number, number, number], // CENTER of Far NE patch
-      color: "#F59E0B",
+      id: "doctor",
+      name: "👨‍⚕️ Doctor Portal",
+      position: [-60, 0, 52] as [number, number, number], // Next to hospital
+      color: "#EC4899",
       height: 6.5,
       style: "modern",
+    },
+    {
+      id: "voting",
+      name: "🗳️ Voting Hall",
+      position: [52, 0, -52] as [number, number, number], // CENTER of Far NE patch
+      color: "#7C3AED",
+      height: 8,
+      style: "dome",
+    },
+    {
+      id: "admin",
+      name: "🛡️ Admin Center",
+      position: [17.5, 0, -52] as [number, number, number], // Far NORTH patch (moved from near voting)
+      color: "#6366F1",
+      height: 7,
+      style: "admin",
     },
     {
       id: "traffic",
@@ -75,12 +95,20 @@ export function CityScene3D({
       style: "classical",
     },
     {
-      id: "token",
-      name: "🪙 Token Mint",
-      position: [-17.5, 0, 17.5] as [number, number, number], // CENTER of SW inner patch
+      id: "vault",
+      name: "🔒 Token Vault",
+      position: [-17.5, 0, 17.5] as [number, number, number], // CENTER of SW inner patch (original position)
       color: "#FBBF24",
       height: 6,
       style: "tower",
+    },
+    {
+      id: "faucet",
+      name: "💧 Token Faucet",
+      position: [-25, 0, 17.5] as [number, number, number], // Next to vault in SW inner patch (original position)
+      color: "#14B8A6",
+      height: 5,
+      style: "modern",
     },
     {
       id: "farm",
@@ -89,6 +117,14 @@ export function CityScene3D({
       color: "#22C55E",
       height: 6,
       style: "warehouse",
+    },
+    {
+      id: "shop",
+      name: "🏪 Commerce Shop",
+      position: [60, 0, -20] as [number, number, number], // EAST STRIP - dummy buildings only area
+      color: "#F59E0B",
+      height: 6.5,
+      style: "modern",
     },
   ];
 
@@ -184,56 +220,42 @@ export function CityScene3D({
         {/* Traffic Light Controller */}
         <TrafficLightController />
 
-        {/* Traffic Lights at Center Intersection */}
-        <TrafficLight position={[6, 0, 6]} id="main-h-center" delay={0} />
-        <TrafficLight
-          position={[-6, 0, -6]}
-          id="main-h-center-opposite"
-          delay={0}
-        />
-        <TrafficLight position={[6, 0, -6]} id="main-v-center" delay={5} />
-        <TrafficLight
-          position={[-6, 0, 6]}
-          id="main-v-center-opposite"
-          delay={5}
-        />
+        {/* MAIN INTERSECTION (0, 0) - 4 corner lights controlling all 4 approaches */}
+        {/* NE corner - Controls traffic coming from North and East */}
+        <TrafficLight position={[6, 0, 6]} id="main-ne" delay={0} />
 
-        {/* Traffic Lights at Secondary Intersections */}
-        {/* Intersection at (-35, 0) */}
-        <TrafficLight position={[-30, 0, 6]} id="sec-h--35" delay={2} />
-        <TrafficLight
-          position={[-40, 0, -6]}
-          id="sec-h--35-opposite"
-          delay={2}
-        />
-        <TrafficLight position={[-30, 0, -6]} id="sec-v--35" delay={7} />
-        <TrafficLight
-          position={[-40, 0, 6]}
-          id="sec-v--35-opposite"
-          delay={7}
-        />
+        {/* NW corner - Controls traffic coming from North and West */}
+        <TrafficLight position={[-6, 0, 6]} id="main-nw" delay={0} />
 
-        {/* Intersection at (35, 0) */}
-        <TrafficLight position={[40, 0, 6]} id="sec-h-35" delay={2} />
-        <TrafficLight position={[30, 0, -6]} id="sec-h-35-opposite" delay={2} />
-        <TrafficLight position={[40, 0, -6]} id="sec-v-35" delay={7} />
-        <TrafficLight position={[30, 0, 6]} id="sec-v-35-opposite" delay={7} />
+        {/* SE corner - Controls traffic coming from South and East */}
+        <TrafficLight position={[6, 0, -6]} id="main-se" delay={5} />
 
-        {/* Intersection at (0, -35) */}
-        <TrafficLight position={[6, 0, -30]} id="sec-h-0--35" delay={3} />
-        <TrafficLight
-          position={[-6, 0, -40]}
-          id="sec-h-0--35-opposite"
-          delay={3}
-        />
+        {/* SW corner - Controls traffic coming from South and West */}
+        <TrafficLight position={[-6, 0, -6]} id="main-sw" delay={5} />
 
-        {/* Intersection at (0, 35) */}
-        <TrafficLight position={[6, 0, 40]} id="sec-h-0-35" delay={3} />
-        <TrafficLight
-          position={[-6, 0, 30]}
-          id="sec-h-0-35-opposite"
-          delay={3}
-        />
+        {/* WEST INTERSECTION (-35, 0) - 4 corner lights */}
+        <TrafficLight position={[-29, 0, 6]} id="west-ne" delay={2} />
+        <TrafficLight position={[-41, 0, 6]} id="west-nw" delay={2} />
+        <TrafficLight position={[-29, 0, -6]} id="west-se" delay={7} />
+        <TrafficLight position={[-41, 0, -6]} id="west-sw" delay={7} />
+
+        {/* EAST INTERSECTION (35, 0) - 4 corner lights */}
+        <TrafficLight position={[41, 0, 6]} id="east-ne" delay={2} />
+        <TrafficLight position={[29, 0, 6]} id="east-nw" delay={2} />
+        <TrafficLight position={[41, 0, -6]} id="east-se" delay={7} />
+        <TrafficLight position={[29, 0, -6]} id="east-sw" delay={7} />
+
+        {/* NORTH INTERSECTION (0, 35) - 4 corner lights */}
+        <TrafficLight position={[6, 0, 41]} id="north-ne" delay={3} />
+        <TrafficLight position={[-6, 0, 41]} id="north-nw" delay={3} />
+        <TrafficLight position={[6, 0, 29]} id="north-se" delay={8} />
+        <TrafficLight position={[-6, 0, 29]} id="north-sw" delay={8} />
+
+        {/* SOUTH INTERSECTION (0, -35) - 4 corner lights */}
+        <TrafficLight position={[6, 0, -29]} id="south-ne" delay={3} />
+        <TrafficLight position={[-6, 0, -29]} id="south-nw" delay={3} />
+        <TrafficLight position={[6, 0, -41]} id="south-se" delay={8} />
+        <TrafficLight position={[-6, 0, -41]} id="south-sw" delay={8} />
 
         {/* Vehicles */}
         <CityVehicles />
@@ -247,6 +269,7 @@ export function CityScene3D({
             onClick={() => onBuildingClick(building.id)}
             onHover={() => onBuildingHover(building.id)}
             onUnhover={() => onBuildingHover(null)}
+            userDID={userDID}
           />
         ))}
 

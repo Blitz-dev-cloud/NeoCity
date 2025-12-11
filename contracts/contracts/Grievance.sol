@@ -135,7 +135,16 @@ contract Grievance is AccessControl, ReentrancyGuard {
         external
         view
         grievanceExists(id)
-        returns (string memory complainantDID, string memory title, GrievanceStatus status)
+        returns (
+            uint256,
+            string memory complainantDID,
+            string memory title,
+            string memory ipfsHash,
+            address resolver,
+            GrievanceStatus status,
+            string memory resolutionIpfsHash,
+            uint256 filedAt
+        )
     {
         require(
             identityRegistry.getIdentityOwner(grievances[id].complainantDID) == msg.sender ||
@@ -145,7 +154,7 @@ contract Grievance is AccessControl, ReentrancyGuard {
         );
 
         GrievanceRecord storage g = grievances[id];
-        return (g.complainantDID, g.title, g.status);
+        return (g.id, g.complainantDID, g.title, g.ipfsHash, g.resolver, g.status, g.resolutionIpfsHash, g.filedAt);
     }
 
     function getUserGrievances(string memory did)
@@ -155,5 +164,32 @@ contract Grievance is AccessControl, ReentrancyGuard {
         returns (uint256[] memory)
     {
         return userGrievances[did];
+    }
+    
+    function getAllGrievances() external view returns (uint256[] memory) {
+        uint256[] memory allGrievances = new uint256[](grievanceCount);
+        for (uint256 i = 0; i < grievanceCount; i++) {
+            allGrievances[i] = i + 1;
+        }
+        return allGrievances;
+    }
+    
+    function getActiveGrievances() external view returns (uint256[] memory) {
+        uint256 activeCount = 0;
+        for (uint256 i = 1; i <= grievanceCount; i++) {
+            if (grievances[i].status != GrievanceStatus.Resolved) {
+                activeCount++;
+            }
+        }
+        
+        uint256[] memory activeGrievances = new uint256[](activeCount);
+        uint256 index = 0;
+        for (uint256 i = 1; i <= grievanceCount; i++) {
+            if (grievances[i].status != GrievanceStatus.Resolved) {
+                activeGrievances[index] = i;
+                index++;
+            }
+        }
+        return activeGrievances;
     }
 }

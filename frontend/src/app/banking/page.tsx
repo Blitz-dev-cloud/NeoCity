@@ -178,6 +178,8 @@ export default function BankingDashboard() {
     withdraw,
     requestLoan,
     isPending: bankPending,
+    isConfirming: bankConfirming,
+    isSuccess: bankSuccess,
     useDeposit,
   } = useDeFiBank();
 
@@ -208,6 +210,19 @@ export default function BankingDashboard() {
     setNotification({ message, type });
   };
 
+  // Show success notification after blockchain confirmation
+  useEffect(() => {
+    if (bankSuccess) {
+      showNotification(
+        "Transaction confirmed successfully on blockchain!",
+        "success"
+      );
+      setDepositAmount("");
+      setWithdrawAmount("");
+      setIsApproved(false);
+    }
+  }, [bankSuccess]);
+
   // Handle Approve
   const handleApprove = async () => {
     if (!depositAmount || !isConnected) return;
@@ -225,7 +240,8 @@ export default function BankingDashboard() {
   const handleDeposit = async () => {
     if (!depositAmount || !makeDeposit || !isConnected) return;
     try {
-      await makeDeposit(parseEther(depositAmount));
+      makeDeposit(parseEther(depositAmount));
+      // Add transaction to history
       const newTx: Transaction = {
         id: Date.now().toString(),
         type: "deposit",
@@ -234,12 +250,7 @@ export default function BankingDashboard() {
         status: "success",
       };
       setTransactions([newTx, ...transactions]);
-      showNotification(
-        `Deposited ${depositAmount} NEO successfully!`,
-        "success"
-      );
-      setDepositAmount("");
-      setIsApproved(false);
+      // Success will be shown via useEffect watching bankSuccess
     } catch (error) {
       console.error("Deposit failed:", error);
       showNotification("Deposit failed. Please try again.", "error");
@@ -250,7 +261,8 @@ export default function BankingDashboard() {
   const handleWithdraw = async () => {
     if (!withdrawAmount || !withdraw || !isConnected) return;
     try {
-      await withdraw(parseEther(withdrawAmount));
+      withdraw(parseEther(withdrawAmount));
+      // Add transaction to history
       const newTx: Transaction = {
         id: Date.now().toString(),
         type: "withdraw",
@@ -259,11 +271,7 @@ export default function BankingDashboard() {
         status: "success",
       };
       setTransactions([newTx, ...transactions]);
-      showNotification(
-        `Withdrawn ${withdrawAmount} NEO successfully!`,
-        "success"
-      );
-      setWithdrawAmount("");
+      // Success will be shown via useEffect watching bankSuccess
     } catch (error) {
       console.error("Withdrawal failed:", error);
       showNotification("Withdrawal failed. Please try again.", "error");

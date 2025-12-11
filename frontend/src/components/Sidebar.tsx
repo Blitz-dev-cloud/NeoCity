@@ -11,6 +11,10 @@ import {
   FaHospital,
   FaShippingFast,
   FaTrafficLight,
+  FaCoins,
+  FaLock,
+  FaUserShield,
+  FaUserMd,
 } from "react-icons/fa";
 import { ReactNode } from "react";
 
@@ -24,17 +28,21 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: <FaHome /> },
   { name: "DeFi Banking", href: "/banking", icon: <FaUniversity /> },
+  { name: "Token Faucet", href: "/faucet", icon: <FaCoins /> },
+  { name: "Token Vault", href: "/vault", icon: <FaLock /> },
   { name: "Voting", href: "/voting", icon: <FaVoteYea /> },
   { name: "Identity", href: "/identity", icon: <FaIdCard /> },
   {
     name: "Grievances",
-    href: "/grievances",
+    href: "/grievance",
     icon: <FaExclamationTriangle />,
     badge: 3,
   },
   { name: "Healthcare", href: "/healthcare", icon: <FaHospital /> },
+  { name: "Doctor Portal", href: "/doctor", icon: <FaUserMd /> },
   { name: "Supply Chain", href: "/supply-chain", icon: <FaShippingFast /> },
   { name: "Traffic", href: "/traffic", icon: <FaTrafficLight /> },
+  { name: "Admin Panel", href: "/admin", icon: <FaUserShield /> },
 ];
 
 export function Sidebar() {

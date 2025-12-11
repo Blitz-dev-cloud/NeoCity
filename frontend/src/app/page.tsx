@@ -12,6 +12,8 @@ import { formatEther } from "viem";
 import { FaSpinner } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { TrafficControlPanel } from "@/components/TrafficControlPanel";
+import { TrafficStatusIndicator } from "@/components/TrafficStatusIndicator";
+import { TrafficCongestionMonitor } from "@/components/TrafficCongestionMonitor";
 
 // Dynamic import for 3D scene (client-side only)
 const CityScene3D = dynamic(
@@ -37,12 +39,17 @@ export default function Home() {
 
   // Hooks (only used when connected)
   const { useBalance } = useDeFiToken();
-  const { useIsVerified } = useIdentityRegistry();
+  const { useUserDIDs, useIdentityByDID } = useIdentityRegistry();
   const { useProposalCount } = useVoting();
 
   // Data (only fetch when connected)
   const { data: balance } = useBalance(address);
-  const { data: isVerified } = useIsVerified(address);
+  const { data: userDID } = useUserDIDs(address);
+  const did = userDID && typeof userDID === "string" ? userDID : "";
+  const { data: identityData } = useIdentityByDID(did);
+  const hasIdentity =
+    identityData && Array.isArray(identityData) && identityData[0];
+  const isVerified = hasIdentity && identityData[2]; // isActive field
   const { data: proposalCount } = useProposalCount();
 
   // Loading animation timer
@@ -66,7 +73,8 @@ export default function Home() {
       farm: "/supply-chain",
       shop: "/supply-chain",
       traffic: "/traffic",
-      token: "/banking", // Token mint can go to banking for now
+      vault: "/vault",
+      faucet: "/faucet",
     };
 
     const route = routes[buildingId];
@@ -576,6 +584,7 @@ export default function Home() {
           onBuildingClick={handleBuildingClick}
           hoveredBuilding={hoveredBuilding}
           onBuildingHover={setHoveredBuilding}
+          userDID={did}
         />
       </div>
 
@@ -584,6 +593,28 @@ export default function Home() {
         {/* Left side - Stats */}
         {isConnected && (
           <div className="flex flex-col gap-3 pointer-events-auto">
+            {/* DID Display Card */}
+            {did && (
+              <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-cyan-400/30 shadow-lg shadow-cyan-500/20">
+                <div className="text-xs text-cyan-300 mb-1 flex items-center gap-2">
+                  <span>🆔 Your DID</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(did);
+                      // Optional: Show toast notification
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 transition-colors text-xs px-2 py-0.5 bg-cyan-500/10 rounded hover:bg-cyan-500/20"
+                    title="Copy DID"
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+                <div className="text-xs font-mono text-white bg-black/40 px-2 py-1 rounded border border-cyan-500/20 overflow-hidden text-ellipsis">
+                  {did.slice(0, 20)}...{did.slice(-10)}
+                </div>
+              </div>
+            )}
+
             <div className="bg-black/60 backdrop-blur-xl px-4 py-3 rounded-xl border border-blue-400/30 shadow-lg shadow-blue-500/20">
               <div className="text-xs text-blue-300 mb-1">Wallet Balance</div>
               <div className="text-lg font-bold text-white">
@@ -632,6 +663,11 @@ export default function Home() {
 
       {/* Traffic Control Panel */}
       <TrafficControlPanel />
+
+      {/* Traffic Status Indicator with Dynamic Timing */}
+      <TrafficStatusIndicator />
+      {/* Traffic Congestion Monitor - Auto-logs to blockchain (rendered outside Canvas) */}
+      <TrafficCongestionMonitor />
     </main>
   );
 }

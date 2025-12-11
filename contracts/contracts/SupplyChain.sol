@@ -74,6 +74,9 @@ contract SupplyChain is AccessControl, ReentrancyGuard {
         require(bytes(batchId).length > 0, "Invalid batch ID");
         require(quantity > 0, "Invalid quantity");
 
+        address[] memory initialHistory = new address[](1);
+        initialHistory[0] = msg.sender;
+
         batches[batchId] = ProductBatch({
             batchId: batchId,
             productName: productName,
@@ -83,10 +86,9 @@ contract SupplyChain is AccessControl, ReentrancyGuard {
             createdAt: block.timestamp,
             quantity: quantity,
             location: location,
-            ownershipHistory: new address[](0)
+            ownershipHistory: initialHistory
         });
 
-        batches[batchId].ownershipHistory.push(msg.sender);
         ownerBatches[msg.sender].push(batchId);
 
         emit BatchRegistered(batchId, msg.sender, productName, quantity);

@@ -40,12 +40,12 @@ export function useVoting() {
   };
 
   // Write functions
-  const createProposal = (description: string, duration: bigint) => {
+  const createProposal = (did: string, title: string, description: string) => {
     return writeContract({
       address: contractAddresses.Voting,
       abi: VotingABI,
       functionName: "createProposal",
-      args: [description, duration],
+      args: [did, title, description],
     });
   };
 

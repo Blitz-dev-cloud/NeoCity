@@ -1,13 +1,28 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { useState } from "react";
 import { FaBell } from "react-icons/fa";
 
 export function Header() {
   const { isConnected } = useAccount();
+  const chainId = useChainId();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Get network name and color based on chainId
+  const getNetworkInfo = () => {
+    switch (chainId) {
+      case 31337:
+        return { name: "Hardhat Local", color: "green" };
+      case 11155111:
+        return { name: "Sepolia Testnet", color: "blue" };
+      default:
+        return { name: "Unknown Network", color: "red" };
+    }
+  };
+
+  const networkInfo = getNetworkInfo();
 
   return (
     <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
@@ -25,9 +40,35 @@ export function Header() {
           <div className="flex items-center gap-4">
             {/* Network Status */}
             {isConnected && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm text-green-400">Hardhat Local</span>
+              <div
+                className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+                  networkInfo.color === "green"
+                    ? "bg-green-500/10 border border-green-500/20"
+                    : networkInfo.color === "blue"
+                    ? "bg-blue-500/10 border border-blue-500/20"
+                    : "bg-red-500/10 border border-red-500/20"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full animate-pulse ${
+                    networkInfo.color === "green"
+                      ? "bg-green-500"
+                      : networkInfo.color === "blue"
+                      ? "bg-blue-500"
+                      : "bg-red-500"
+                  }`}
+                />
+                <span
+                  className={`text-sm ${
+                    networkInfo.color === "green"
+                      ? "text-green-400"
+                      : networkInfo.color === "blue"
+                      ? "text-blue-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {networkInfo.name}
+                </span>
               </div>
             )}
 

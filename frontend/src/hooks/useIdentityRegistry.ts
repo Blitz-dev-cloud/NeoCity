@@ -12,62 +12,114 @@ export function useIdentityRegistry() {
     hash,
   });
 
-  // Read functions
-  const useIsVerified = (address?: `0x${string}`) => {
+  // Read functions - using actual contract functions
+  // Note: Contract uses DID-based system, so we'll check if user has any DIDs
+  const useUserDIDs = (address?: `0x${string}`) => {
     return useReadContract({
       address: contractAddresses.IdentityRegistry,
       abi: IdentityRegistryABI,
-      functionName: "isVerified",
-      args: address ? [address] : undefined,
+      functionName: "userDIDs",
+      args:
+        address && address !== "0x0000000000000000000000000000000000000000"
+          ? [address, 0]
+          : undefined,
+      query: {
+        enabled:
+          !!address && address !== "0x0000000000000000000000000000000000000000",
+      },
     });
   };
 
-  const useGetIdentity = (address?: `0x${string}`) => {
+  const useIdentityByDID = (did?: string) => {
     return useReadContract({
       address: contractAddresses.IdentityRegistry,
       abi: IdentityRegistryABI,
-      functionName: "getIdentity",
-      args: address ? [address] : undefined,
+      functionName: "identities",
+      args: did ? [did] : undefined,
+      query: {
+        enabled: !!did && did.length > 0,
+      },
     });
   };
 
-  // Write functions
+  const useVerifyIdentity = (did?: string) => {
+    return useReadContract({
+      address: contractAddresses.IdentityRegistry,
+      abi: IdentityRegistryABI,
+      functionName: "verifyIdentity",
+      args: did ? [did] : undefined,
+      query: {
+        enabled: !!did && did.length > 0,
+      },
+    });
+  };
+
+  // Write functions - using actual contract signature
   const registerIdentity = (
     name: string,
     dateOfBirth: string,
-    idNumber: string
+    idNumber: string,
+    userAddress: `0x${string}`
   ) => {
+    // Generate DID based on user address
+    const did = `did:neocity:${userAddress.toLowerCase()}`;
+
+    // Create DID document JSON
+    const didDocument = JSON.stringify({
+      "@context": "https://www.w3.org/ns/did/v1",
+      id: did,
+      name: name,
+      dateOfBirth: dateOfBirth,
+      idNumber: idNumber,
+      created: new Date().toISOString(),
+    });
+
     return writeContract({
       address: contractAddresses.IdentityRegistry,
       abi: IdentityRegistryABI,
       functionName: "registerIdentity",
-      args: [name, dateOfBirth, idNumber],
+      args: [did, didDocument],
     });
   };
 
-  const verifyIdentity = (userAddress: `0x${string}`) => {
+  const updateIdentity = (
+    did: string,
+    name: string,
+    dateOfBirth: string,
+    idNumber: string
+  ) => {
+    const didDocument = JSON.stringify({
+      "@context": "https://www.w3.org/ns/did/v1",
+      id: did,
+      name: name,
+      dateOfBirth: dateOfBirth,
+      idNumber: idNumber,
+      updated: new Date().toISOString(),
+    });
+
     return writeContract({
       address: contractAddresses.IdentityRegistry,
       abi: IdentityRegistryABI,
-      functionName: "verifyIdentity",
-      args: [userAddress],
+      functionName: "updateIdentity",
+      args: [did, didDocument],
     });
   };
 
-  const revokeIdentity = (userAddress: `0x${string}`) => {
+  const revokeIdentity = (did: string) => {
     return writeContract({
       address: contractAddresses.IdentityRegistry,
       abi: IdentityRegistryABI,
       functionName: "revokeIdentity",
-      args: [userAddress],
+      args: [did],
     });
   };
 
   return {
-    useIsVerified,
-    useGetIdentity,
+    useUserDIDs,
+    useIdentityByDID,
+    useVerifyIdentity,
     registerIdentity,
-    verifyIdentity,
+    updateIdentity,
     revokeIdentity,
     isPending,
     isConfirming,

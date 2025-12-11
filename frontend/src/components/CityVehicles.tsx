@@ -1,9 +1,13 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { TrafficLightManager } from "./TrafficLights";
+import { useAccount, useWriteContract } from "wagmi";
+import { TrafficLogABI } from "@/contracts/abis";
+import { contractAddresses } from "@/contracts/addresses";
+import { uploadJSONToIPFS } from "@/utils/pinata";
 
 interface Vehicle {
   id: string;
@@ -159,58 +163,268 @@ export function CityVehicles() {
     vehiclesRef.current.children.forEach((mesh, index) => {
       const vehicle = vehicles[index];
 
-      // Check for traffic lights at intersections
+      // Check for traffic lights at intersections (corner placement)
       let shouldStop = false;
       const pos = mesh.position;
 
-      // Check main intersection (0, 0)
-      if (Math.abs(pos.x) < 8 && Math.abs(pos.z) < 8) {
-        const lightId =
-          vehicle.path === "horizontal" ? "main-h-center" : "main-v-center";
-        if (
-          manager.getState(lightId) === "red" ||
-          manager.getState(lightId) === "yellow"
-        ) {
-          shouldStop = true;
+      // Helper function to check if near intersection
+      const checkIntersection = (
+        centerX: number,
+        centerZ: number,
+        lightId: string
+      ) => {
+        const distX = Math.abs(pos.x - centerX);
+        const distZ = Math.abs(pos.z - centerZ);
+
+        // Vehicle approaching intersection (within 10 units)
+        if (distX < 10 && distZ < 10) {
+          const state = manager.getState(lightId);
+          if (state === "red" || state === "yellow") {
+            // Only stop if vehicle is approaching the light (not past it)
+            if (vehicle.path === "horizontal") {
+              // Horizontal vehicles check if they're before the intersection
+              if (vehicle.rotation === 0 && pos.x < centerX + 5) return true; // Moving east
+              if (vehicle.rotation === Math.PI && pos.x > centerX - 5)
+                return true; // Moving west
+            } else {
+              // Vertical vehicles check if they're before the intersection
+              if (vehicle.rotation === Math.PI / 2 && pos.z < centerZ + 5)
+                return true; // Moving north
+              if (vehicle.rotation === -Math.PI / 2 && pos.z > centerZ - 5)
+                return true; // Moving south
+            }
+          }
+        }
+        return false;
+      };
+
+      // Check main intersection (0, 0) - Corner-based traffic lights
+      // Each corner light controls traffic approaching from 2 directions
+      if (vehicle.path === "horizontal") {
+        if (vehicle.rotation === 0) {
+          // Moving EAST (→) - check NE and SE corners (right side lights)
+          if (vehicle.lane > 0) {
+            // Upper lane - check NE corner
+            if (checkIntersection(0, 0, "main-ne")) shouldStop = true;
+          } else {
+            // Lower lane - check SE corner
+            if (checkIntersection(0, 0, "main-se")) shouldStop = true;
+          }
+        } else {
+          // Moving WEST (←) - check NW and SW corners (left side lights)
+          if (vehicle.lane > 0) {
+            // Upper lane - check NW corner
+            if (checkIntersection(0, 0, "main-nw")) shouldStop = true;
+          } else {
+            // Lower lane - check SW corner
+            if (checkIntersection(0, 0, "main-sw")) shouldStop = true;
+          }
+        }
+      } else {
+        // Vertical path
+        if (vehicle.rotation === Math.PI / 2) {
+          // Moving NORTH (↑) - check NE and NW corners (top lights)
+          if (vehicle.lane > 0) {
+            // Right lane - check NE corner
+            if (checkIntersection(0, 0, "main-ne")) shouldStop = true;
+          } else {
+            // Left lane - check NW corner
+            if (checkIntersection(0, 0, "main-nw")) shouldStop = true;
+          }
+        } else {
+          // Moving SOUTH (↓) - check SE and SW corners (bottom lights)
+          if (vehicle.lane > 0) {
+            // Right lane - check SE corner
+            if (checkIntersection(0, 0, "main-se")) shouldStop = true;
+          } else {
+            // Left lane - check SW corner
+            if (checkIntersection(0, 0, "main-sw")) shouldStop = true;
+          }
         }
       }
 
-      // Check secondary intersections at ±35
-      [-35, 35].forEach((coord) => {
-        if (
-          vehicle.path === "horizontal" &&
-          Math.abs(pos.x - coord) < 8 &&
-          Math.abs(pos.z) < 8
-        ) {
-          const lightId = `sec-h-${coord}`;
-          if (
-            manager.getState(lightId) === "red" ||
-            manager.getState(lightId) === "yellow"
-          ) {
-            shouldStop = true;
+      // Check west intersection (-35, 0)
+      if (vehicle.path === "horizontal") {
+        if (vehicle.rotation === 0) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(-35, 0, "west-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(-35, 0, "west-se")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(-35, 0, "west-nw")) shouldStop = true;
+          } else {
+            if (checkIntersection(-35, 0, "west-sw")) shouldStop = true;
           }
         }
-        if (
-          vehicle.path === "vertical" &&
-          Math.abs(pos.z - coord) < 8 &&
-          Math.abs(pos.x) < 8
-        ) {
-          const lightId = `sec-v-${coord}`;
-          if (
-            manager.getState(lightId) === "red" ||
-            manager.getState(lightId) === "yellow"
-          ) {
-            shouldStop = true;
+      } else {
+        if (vehicle.rotation === Math.PI / 2) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(-35, 0, "west-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(-35, 0, "west-nw")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(-35, 0, "west-se")) shouldStop = true;
+          } else {
+            if (checkIntersection(-35, 0, "west-sw")) shouldStop = true;
+          }
+        }
+      }
+
+      // Check east intersection (35, 0)
+      if (vehicle.path === "horizontal") {
+        if (vehicle.rotation === 0) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(35, 0, "east-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(35, 0, "east-se")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(35, 0, "east-nw")) shouldStop = true;
+          } else {
+            if (checkIntersection(35, 0, "east-sw")) shouldStop = true;
+          }
+        }
+      } else {
+        if (vehicle.rotation === Math.PI / 2) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(35, 0, "east-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(35, 0, "east-nw")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(35, 0, "east-se")) shouldStop = true;
+          } else {
+            if (checkIntersection(35, 0, "east-sw")) shouldStop = true;
+          }
+        }
+      }
+
+      // Check north intersection (0, 35)
+      if (vehicle.path === "horizontal") {
+        if (vehicle.rotation === 0) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, 35, "north-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, 35, "north-se")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, 35, "north-nw")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, 35, "north-sw")) shouldStop = true;
+          }
+        }
+      } else {
+        if (vehicle.rotation === Math.PI / 2) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, 35, "north-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, 35, "north-nw")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, 35, "north-se")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, 35, "north-sw")) shouldStop = true;
+          }
+        }
+      }
+
+      // Check south intersection (0, -35)
+      if (vehicle.path === "horizontal") {
+        if (vehicle.rotation === 0) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, -35, "south-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, -35, "south-se")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, -35, "south-nw")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, -35, "south-sw")) shouldStop = true;
+          }
+        }
+      } else {
+        if (vehicle.rotation === Math.PI / 2) {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, -35, "south-ne")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, -35, "south-nw")) shouldStop = true;
+          }
+        } else {
+          if (vehicle.lane > 0) {
+            if (checkIntersection(0, -35, "south-se")) shouldStop = true;
+          } else {
+            if (checkIntersection(0, -35, "south-sw")) shouldStop = true;
+          }
+        }
+      }
+
+      // IMPROVED: Check for vehicles ahead to maintain safe distance
+      let vehicleAhead = false;
+      const safeDistance = 3.5; // Minimum distance to maintain
+
+      vehicles.forEach((otherVehicle) => {
+        if (otherVehicle.id === vehicle.id) return; // Skip self
+        if (otherVehicle.path !== vehicle.path) return; // Different paths don't interfere
+
+        const otherPos = otherVehicle.position;
+
+        if (vehicle.path === "horizontal") {
+          // Check if other vehicle is ahead in the same lane
+          const sameLane = Math.abs(mesh.position.z - otherPos.z) < 2;
+          if (!sameLane) return;
+
+          if (vehicle.rotation === 0) {
+            // Moving east - check vehicles ahead (x+)
+            const distance = otherPos.x - mesh.position.x;
+            if (distance > 0 && distance < safeDistance) {
+              vehicleAhead = true;
+            }
+          } else {
+            // Moving west - check vehicles ahead (x-)
+            const distance = mesh.position.x - otherPos.x;
+            if (distance > 0 && distance < safeDistance) {
+              vehicleAhead = true;
+            }
+          }
+        } else {
+          // Vertical path
+          const sameLane = Math.abs(mesh.position.x - otherPos.x) < 2;
+          if (!sameLane) return;
+
+          if (vehicle.rotation === Math.PI / 2) {
+            // Moving north - check vehicles ahead (z+)
+            const distance = otherPos.z - mesh.position.z;
+            if (distance > 0 && distance < safeDistance) {
+              vehicleAhead = true;
+            }
+          } else {
+            // Moving south - check vehicles ahead (z-)
+            const distance = mesh.position.z - otherPos.z;
+            if (distance > 0 && distance < safeDistance) {
+              vehicleAhead = true;
+            }
           }
         }
       });
 
-      // Update vehicle speed based on traffic lights
-      if (shouldStop) {
-        vehicle.speed = Math.max(0, vehicle.speed - 0.002);
+      // Update vehicle speed based on traffic lights AND vehicle spacing
+      if (shouldStop || vehicleAhead) {
+        // Smoother deceleration when slowing down
+        const decelerationRate = vehicleAhead ? 0.003 : 0.002;
+        vehicle.speed = Math.max(0, vehicle.speed - decelerationRate);
         vehicle.stopped = vehicle.speed < 0.001;
       } else {
-        vehicle.speed = Math.min(vehicle.baseSpeed, vehicle.speed + 0.001);
+        // Gradual acceleration when clear
+        vehicle.speed = Math.min(vehicle.baseSpeed, vehicle.speed + 0.0015);
         vehicle.stopped = false;
       }
 

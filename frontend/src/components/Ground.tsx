@@ -792,13 +792,7 @@ export function Ground() {
       />
 
       {/* EAST STRIP (x: 40 to 70, z: -30 to 30) */}
-      <DummyBuilding
-        position={[60, 0, -20]}
-        color="#27ae60"
-        width={5}
-        height={8.5}
-        depth={4.5}
-      />
+      {/* REMOVED: Building at [60, 0, -20] - replaced with functional Shop building */}
       <DummyBuilding
         position={[52, 0, -20]}
         color="#f1c40f"
@@ -948,13 +942,7 @@ export function Ground() {
         height={8}
         depth={4.5}
       />
-      <DummyBuilding
-        position={[20, 0, -52]}
-        color="#9b59b6"
-        width={5}
-        height={7.5}
-        depth={4}
-      />
+      {/* REMOVED: Dummy building at [20, 0, -52] - was colliding with Admin Center at [17.5, 0, -52] */}
       <DummyBuilding
         position={[20, 0, -44]}
         color="#1abc9c"
