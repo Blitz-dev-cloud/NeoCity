@@ -88,7 +88,7 @@ export default function AdminPage() {
       setIsLoading(true);
 
       try {
-        const { readContract, getBlockNumber, getLogs } = await import(
+        const { readContract, getBlockNumber, getPublicClient } = await import(
           "wagmi/actions"
         );
         const { config } = await import("@/config/wagmi");
@@ -99,7 +99,8 @@ export default function AdminPage() {
         // Fetch IdentityRegistered events from the last 10000 blocks
         const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
 
-        const logs = await getLogs(config, {
+        const client = getPublicClient(config);
+        const logs = await client.getLogs( {
           address: contractAddresses.IdentityRegistry as `0x${string}`,
           event: {
             type: "event",
@@ -128,7 +129,7 @@ export default function AdminPage() {
               abi: IdentityRegistryABI,
               functionName: "identities",
               args: [did],
-            })) as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+            })) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
             const identity: Identity = {
               did: did,
