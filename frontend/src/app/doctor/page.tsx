@@ -240,7 +240,7 @@ export default function DoctorDashboardPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as any)} // eslint-disable-line @typescript-eslint/no-explicit-any
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeTab === tab.id
                   ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg"

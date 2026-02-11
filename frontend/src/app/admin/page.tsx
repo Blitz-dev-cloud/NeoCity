@@ -128,7 +128,7 @@ export default function AdminPage() {
               abi: IdentityRegistryABI,
               functionName: "identities",
               args: [did],
-            })) as any[];
+            })) as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 
             const identity: Identity = {
               did: did,

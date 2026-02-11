@@ -185,6 +185,8 @@ export default function TrafficPage() {
           abi: TrafficLogABI,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           functionName: "getAllZones" as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        })) as string[];
+
 
         const zones: TrafficZoneData[] = [];
         const congestionMap = ["Low", "Medium", "High", "Critical"];
